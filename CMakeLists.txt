@@ -1,0 +1,46 @@
+cmake_minimum_required (VERSION 3.8)
+
+project(client)
+
+set(CMAKE_C_FLAGS_RELEASE "-O3 -fvisibility=hidden -flto -DNDEBUG -Wfatal-errors") # -fno-exceptions
+
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s")
+endif()
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fno-rtti")
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} --no-gnu-unique")
+endif()
+
+add_compile_definitions (
+	SUBHOOK_SEPARATE_SOURCE_FILES
+	SUBHOOK_IMPLEMENTATION
+)
+
+# Allow threading
+set (THREADS_PREFER_PTHREAD_FLAG ON)
+find_package (Threads REQUIRED)
+
+find_package(Freetype REQUIRED)
+find_package(SDL2 REQUIRED)
+find_package(OpenGL REQUIRED)
+
+add_library (client SHARED
+	../subhook/subhook.c
+	../subhook/subhook_unix.c
+	../subhook/subhook_x86.c
+	src/hooks.cpp
+	src/game.cpp
+	src/main.cpp
+)
+
+set_property (TARGET client PROPERTY CXX_STANDARD 20)
+
+target_include_directories(client PRIVATE ${SDL2_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS})
+target_link_libraries(client PRIVATE SDL2 GL ${CMAKE_DL_LIBS} Freetype::Freetype Threads::Threads stdc++fs)
+include_directories (${CMAKE_SOURCE_DIR}/subhook)
+target_link_options(client PRIVATE LINKER:--no-undefined)
