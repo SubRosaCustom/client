@@ -35,8 +35,6 @@ inline uintptr_t getBaseAddress() {
         std::ifstream f("/proc/self/maps");
         std::string ln;
         std::getline(f, ln);
-        std::getline(f, ln);
-        std::getline(f, ln);
         auto addrStr = ln.substr(0, ln.find("-"));
 
         baseAddress = std::stoul(addrStr, nullptr, 16);
