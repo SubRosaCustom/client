@@ -6,4 +6,7 @@ game::game(std::uintptr_t base) {
     
     renderFrame = base + 0x127844;
     renderFrameFunc = (decltype(renderFrameFunc))(renderFrame);
+
+    drawHud = base + 0x5bfed;
+    drawHudFunc = (decltype(drawHudFunc))(drawHud);
 }
