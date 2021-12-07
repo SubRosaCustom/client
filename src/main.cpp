@@ -5,6 +5,7 @@
 #include <Windows.h>
 #endif
 
+#include "structs.hpp"
 #include "game.hpp"
 #include "hooks.hpp"
 
@@ -13,7 +14,7 @@ uintptr_t baseAddress;
 #ifdef _WIN32
 
 inline uintptr_t getBaseAddress() {
-    return 0;
+    return (uintptr_t)GetModuleHandle(NULL);
 }
 
 BOOL WINAPI DllMain(
@@ -24,6 +25,8 @@ BOOL WINAPI DllMain(
 {
     if (reason == DLL_PROCESS_ATTACH) {
         // for windows 0x6d930
+        g_game = std::make_unique<game>(getBaseAddress());
+        g_hooks = std::make_unique<hooks>();
     }
     return TRUE;
 }
