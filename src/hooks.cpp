@@ -1,6 +1,7 @@
 #include "hooks.hpp"
 #include "game.hpp"
 
+#include <iostream>
 #include <sstream>
 
 #ifdef _WIN32
@@ -42,15 +43,36 @@ int64_t drawHud(int64_t arg1)
     subhook::ScopedHookRemove remove(&g_hooks->drawHudHook);
 
     auto ret = g_game->drawHudFunc(arg1);
+
     return ret;
 }
-#include <iostream>
-int64_t drawTextShadow(char *text, int32_t b, char c, float x, float y, float scale, float red, float green, float blue, float alpha)
-{
-    subhook::ScopedHookRemove remove(&g_hooks->drawTextShadowHook);
 
-    g_game->drawTextShadowFunc(text, b, c, x+ 1, y+1, scale, 0, 0, 0, alpha);
-    auto ret = g_game->drawTextShadowFunc(text, b, c, x, y, scale, red, green, blue, alpha);
+int64_t drawText(char *text, int params, int b, int c, float x, float y, float scale, float red, float green, float blue, float alpha)
+{
+    subhook::ScopedHookRemove remove(&g_hooks->drawTextHook);
+
+    auto ret = g_game->drawTextFunc(text, params | TEXT_SHADOW, b, c, x, y, scale, red, green, blue, alpha);
+    return ret;
+}
+
+int drawMainMenu()
+{
+    subhook::ScopedHookRemove remove(&g_hooks->drawMainMenuHook);
+    
+    auto ret = g_game->drawMainMenuFunc();
+    g_game->drawTextFunc("Custom Edition v0.0.1", TEXT_SHADOW | TEXT_CENTER, 0, 0, 512.f, 192.f, 16.f, 1, 1, 1, 1);
+
+    return ret;
+}
+
+int drawCreditsMenu() {
+    subhook::ScopedHookRemove remove(&g_hooks->drawCreditsMenuHook);
+
+    auto ret = g_game->drawCreditsMenuFunc();
+    g_game->drawTextFunc("Custom Edition", TEXT_SHADOW, 0, 0, 200.f, 64.f, 16.f, 0.75, 0.75, 0.75, 1);
+    g_game->drawTextFunc("noche", TEXT_SHADOW, 0, 0, 200.f, 96.f, 16.f, 1, 1, 1, 1);
+    g_game->drawTextFunc("AssBlaster", TEXT_SHADOW, 0, 0, 200.f, 112.f, 16.f, 1, 1, 1, 1);
+
     return ret;
 }
 
@@ -59,5 +81,7 @@ hooks::hooks()
     printf("satellite\n");
     INSTALL(renderFrame);
     INSTALL(drawHud);
-    INSTALL(drawTextShadow);
+    INSTALL(drawText);
+    INSTALL(drawMainMenu);
+    INSTALL(drawCreditsMenu);
 }
