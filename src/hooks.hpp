@@ -16,8 +16,10 @@ public:
     subhook::Hook renderFrameHook;
     subhook::Hook drawHudHook;
     subhook::Hook drawTextHook;
+    subhook::Hook createSoundHook;
     subhook::Hook drawMainMenuHook;
     subhook::Hook drawCreditsMenuHook;
+    subhook::Hook createParticleHook;
 };
 
 inline std::unique_ptr<hooks> g_hooks;

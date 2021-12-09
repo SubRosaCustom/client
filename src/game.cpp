@@ -16,4 +16,12 @@ game::game(std::uintptr_t base) {
 
     drawCreditsMenu = base + WIN_LIN(0xfcc90, 0x8d1ed);
     drawCreditsMenuFunc = (decltype(drawCreditsMenuFunc))(drawCreditsMenu);
+
+    // createSound = base + WIN_LIN(0xfcc90, 0x8d1ed);
+    createSound = base + 0xe4151;
+    createSoundFunc = (decltype(createSoundFunc))(createSound);
+    
+    // createSound = base + WIN_LIN(0xfcc90, 0x8d1ed);
+    createParticle = base + 0xd957e;
+    createParticleFunc = (decltype(createParticleFunc))(createParticle);
 }
