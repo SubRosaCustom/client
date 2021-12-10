@@ -25,7 +25,6 @@ add_compile_definitions (
 set (THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
 
-find_package(Freetype REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED)
 
@@ -40,7 +39,7 @@ add_library (client SHARED
 
 set_property (TARGET client PROPERTY CXX_STANDARD 20)
 
-target_include_directories(client PRIVATE ${SDL2_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS})
-target_link_libraries(client PRIVATE SDL2 GL ${CMAKE_DL_LIBS} Freetype::Freetype Threads::Threads stdc++fs)
+target_include_directories(client PRIVATE ${SDL2_INCLUDE_DIRS})
+target_link_libraries(client PRIVATE SDL2 GL ${CMAKE_DL_LIBS} Threads::Threads stdc++fs)
 include_directories (${CMAKE_SOURCE_DIR}/subhook)
 target_link_options(client PRIVATE LINKER:--no-undefined)

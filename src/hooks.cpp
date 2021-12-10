@@ -17,12 +17,22 @@
 #endif
 
 #ifdef _WIN32
+#define INSTALL(name)                                                                                             \
+    if (!name##Hook.Install((void *)g_game->name##Func, (void *)::name, subhook::HookFlags::HookFlag64BitOffset)) \
+    {                                                                                                             \
+        std::ostringstream stream;                                                                                \
+		stream                                                                                                    \
+            << "Hook " << #name "Hook"                                                                            \
+            << " failed to install";                                                                              \
+        std::cout << stream.str() << std::endl;                                                                   \
+        MessageBoxA(NULL, stream.str().c_str(), "error hook", 1); \
+        throw std::runtime_error(stream.str());                                                                   \
+    }
 #else
 #define INSTALL(name)                                                                                             \
     if (!name##Hook.Install((void *)g_game->name##Func, (void *)::name, subhook::HookFlags::HookFlag64BitOffset)) \
     {                                                                                                             \
         std::ostringstream stream;                                                                                \
-        \ 
 		stream                                                                                                    \
             << "Hook " << #name "Hook"                                                                            \
             << " failed to install";                                                                              \
@@ -47,11 +57,12 @@ int64_t drawHud(int64_t arg1)
     return ret;
 }
 
-int64_t drawText(char *text, int params, void* a, void* b, float x, float y, float scale, float red, float green, float blue, float alpha, void* c)
+int64_t __fastcall drawText(char *text, int params, void* a, void* b, float x, float y, float scale, float red, float green, float blue, float alpha, void* c)
 {
     subhook::ScopedHookRemove remove(&g_hooks->drawTextHook);
-
-    auto ret = g_game->drawTextFunc(text, params | TEXT_SHADOW, a, b, x, y, scale, red, green, blue, alpha, c);
+    
+    printf("DrawText %s, %#x, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %i\n", text, params, a, b, x, y, scale, red, green, blue, alpha, c);
+    auto ret = g_game->drawTextFunc(text, params, a, b, x, y, scale, red, green, blue, alpha, c);
     return ret;
 }
 
@@ -66,7 +77,8 @@ int createParticle(float arg1, int arg2, Vector3 *arg3, Vector3 *arg4)
 {
     subhook::ScopedHookRemove remove(&g_hooks->createParticleHook);
 
-    g_game->createParticleFunc(arg1, arg2, arg3, arg4);
+    auto ret = g_game->createParticleFunc(arg1, arg2, arg3, arg4);
+    return ret;
 }
 
 int drawMainMenu()
@@ -75,7 +87,7 @@ int drawMainMenu()
 
     auto ret = g_game->drawMainMenuFunc();
     subhook::ScopedHookRemove removea(&g_hooks->drawTextHook);
-    g_game->drawTextFunc("Custom Edition v0.0.1", TEXT_SHADOW | TEXT_CENTER, 0, 0, 512.f, 192.f, 16.f, 1, 1, 1, 1, 0);
+    g_game->drawTextFunc((char*)"Custom Edition v0.0.1", TEXT_SHADOW | TEXT_CENTER, 0, 0, 512.f, 192.f, 16.f, 1, 1, 1, 1, 0);
 
     return ret;
 }
@@ -86,10 +98,10 @@ int drawCreditsMenu()
 
     auto ret = g_game->drawCreditsMenuFunc();
     subhook::ScopedHookRemove removea(&g_hooks->drawTextHook);
-    g_game->drawTextFunc("Custom Edition", TEXT_SHADOW, 0, 0, 200.f, 64.f, 16.f, 0.75, 0.75, 0.75, 1, 0);
-    g_game->drawTextFunc("noche", TEXT_SHADOW, 0, 0, 200.f, 96.f, 16.f, 1, 1, 1, 1, 0);
-    g_game->drawTextFunc("AssBlaster", TEXT_SHADOW, 0, 0, 200.f, 112.f, 16.f, 1, 1, 1, 1, 0);
-
+    g_game->drawTextFunc((char*)"Custom Edition", TEXT_SHADOW, 0, 0, 200.f, 64.f, 16.f, 0.75, 0.75, 0.75, 1, 0);
+    g_game->drawTextFunc((char*)"noche", TEXT_SHADOW, 0, 0, 200.f, 96.f, 16.f, 1, 1, 1, 1, 0);
+    g_game->drawTextFunc((char*)"AssBlaster", TEXT_SHADOW, 0, 0, 200.f, 112.f, 16.f, 1, 1, 1, 1, 0);
+    
     return ret;
 }
 
@@ -101,6 +113,6 @@ hooks::hooks()
     INSTALL(drawText);
     INSTALL(drawMainMenu);
     INSTALL(drawCreditsMenu);
-    INSTALL(createSound);
+    //INSTALL(createSound);
     INSTALL(createParticle);
 }
