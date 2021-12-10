@@ -19,7 +19,7 @@ public:
     game(std::uintptr_t base);
 
     std::uintptr_t drawText;
-    std::add_pointer_t<int64_t(char *, int, void*, void*, float, float, float, float, float, float, float, void*)> drawTextFunc;
+    std::add_pointer_t<int64_t (char *, int, void*, void*, float, float, float, float, float, float, float, void*)> drawTextFunc;
 
     std::uintptr_t renderFrame;
     std::add_pointer_t<int64_t(int64_t, int64_t, double*)> renderFrameFunc;
