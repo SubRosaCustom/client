@@ -1,6 +1,0 @@
-﻿  hooks.cpp
-C:\Users\noche\source\repos\client\src\hooks.cpp(64,12): warning C4477: 'printf' : format string '%.2f' requires an argument of type 'double', but variadic argument 3 has type 'void *'
-C:\Users\noche\source\repos\client\src\hooks.cpp(64,12): warning C4477: 'printf' : format string '%.2f' requires an argument of type 'double', but variadic argument 4 has type 'void *'
-C:\Users\noche\source\repos\client\src\hooks.cpp(64,12): warning C4477: 'printf' : format string '%i' requires an argument of type 'int', but variadic argument 12 has type 'void *'
-C:\Users\noche\source\repos\client\src\hooks.cpp(64,12): warning C4313: 'printf': '%i' in format string conflicts with argument 12 of type 'void *'
-  client.vcxproj -> C:\Users\noche\source\repos\client\Release\client.dll
