@@ -16,103 +16,100 @@
 #include <unistd.h>
 #endif
 
-#ifdef _WIN32
 #define INSTALL(name)                                                                                             \
     if (!name##Hook.Install((void *)g_game->name##Func, (void *)::name, subhook::HookFlags::HookFlag64BitOffset)) \
     {                                                                                                             \
-        std::ostringstream stream;                                                                                \
-		stream                                                                                                    \
-            << "Hook " << #name "Hook"                                                                            \
-            << " failed to install";                                                                              \
-        std::cout << stream.str() << std::endl;                                                                   \
-        MessageBoxA(NULL, stream.str().c_str(), "error hook", 1); \
-        throw std::runtime_error(stream.str());                                                                   \
-    }
-#else
-#define INSTALL(name)                                                                                             \
-    if (!name##Hook.Install((void *)g_game->name##Func, (void *)::name, subhook::HookFlags::HookFlag64BitOffset)) \
-    {                                                                                                             \
-        std::ostringstream stream;                                                                                \
-		stream                                                                                                    \
-            << "Hook " << #name "Hook"                                                                            \
-            << " failed to install";                                                                              \
-        std::cout << stream.str() << std::endl;                                                                   \
-        throw std::runtime_error(stream.str());                                                                   \
-    }
-#endif
+        ERROR_AND_EXIT("Hook %sHook failed to install", #name);                                                   \
+    } \
+    printf(#name " hooked!\n");
 
-int64_t renderFrame(int64_t arg1, int64_t arg2, double *arg3)
+#define REMOVE_HOOK(name) subhook::ScopedHookRemove name##Remove(&g_hooks->name##Hook);
+
+int64_t renderFrame(int64_t arg1, int64_t arg2, double* arg3)
 {
-    subhook::ScopedHookRemove remove(&g_hooks->renderFrameHook);
+	REMOVE_HOOK(renderFrame);
 
-    auto ret = g_game->renderFrameFunc(arg1, arg2, arg3);
-    return ret;
+	auto ret = g_game->renderFrameFunc(arg1, arg2, arg3);
+	return ret;
 }
 
 int64_t drawHud(int64_t arg1)
 {
-    subhook::ScopedHookRemove remove(&g_hooks->drawHudHook);
+	REMOVE_HOOK(drawHud);
 
-    auto ret = g_game->drawHudFunc(arg1);
-    return ret;
+	printf("drawHud called\n");
+	g_game->drawTextFunc((char*)"Custom Edition v0.0.1", TEXT_SHADOW | TEXT_CENTER, 0, 0, 0, 1, 1, 1, 1, 16.f, 192.f, 512.f);
+	
+	auto ret = g_game->drawHudFunc(arg1);
+	return ret;
 }
 
-int64_t __fastcall drawText(char *text, int params, void* a, void* b, float x, float y, float scale, float red, float green, float blue, float alpha, void* c)
+#ifdef _WIN32
+int64_t drawText(char* text, int params, int a, int b, float x, float y, float scale, float red, float green, float blue, float alpha, int c)
+#else
+int64_t drawText(char* text, int params, int a, int b, float x, float y, float scale, float red, float green, float blue, float alpha, int c)
+#endif
 {
-    subhook::ScopedHookRemove remove(&g_hooks->drawTextHook);
-    
-    printf("DrawText %s, %#x, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %i\n", text, params, a, b, x, y, scale, red, green, blue, alpha, c);
-    auto ret = g_game->drawTextFunc(text, params, a, b, x, y, scale, red, green, blue, alpha, c);
-    return ret;
+	REMOVE_HOOK(drawText);
+
+	printf("DrawText %s, %#x, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %i\n", text, params, a, b, x, y, scale, red, green, blue, alpha, c);
+#ifdef _WIN32
+	auto ret = g_game->drawTextFunc(text, params, a, b, x, y, scale, red, green, blue, alpha, c);
+	//auto ret = g_game->drawTextFunc(text, c, alpha, blue, green, red, scale, y, x, b, a, params);
+#else
+	auto ret = g_game->drawTextFunc(text, params, a, b, x, y, scale, red, green, blue, alpha, c);
+#endif
+	return ret;
 }
 
-void createSound(float arg1, float arg2, int arg3, Vector3 *arg4)
+void createSound(float arg1, float arg2, int arg3, Vector3* arg4)
 {
-    subhook::ScopedHookRemove remove(&g_hooks->createSoundHook);
+	REMOVE_HOOK(createSound);
 
-    g_game->createSoundFunc(arg1, arg2, arg3, arg4);
+	g_game->createSoundFunc(arg1, arg2, arg3, arg4);
 }
 
-int createParticle(float arg1, int arg2, Vector3 *arg3, Vector3 *arg4)
+int createParticle(float arg1, int arg2, Vector3* arg3, Vector3* arg4)
 {
-    subhook::ScopedHookRemove remove(&g_hooks->createParticleHook);
+	REMOVE_HOOK(createParticle);
 
-    auto ret = g_game->createParticleFunc(arg1, arg2, arg3, arg4);
-    return ret;
+	auto ret = g_game->createParticleFunc(arg1, arg2, arg3, arg4);
+	return ret;
 }
 
 int drawMainMenu()
 {
-    subhook::ScopedHookRemove remove(&g_hooks->drawMainMenuHook);
+	REMOVE_HOOK(drawMainMenu);
 
-    auto ret = g_game->drawMainMenuFunc();
-    subhook::ScopedHookRemove removea(&g_hooks->drawTextHook);
-    g_game->drawTextFunc((char*)"Custom Edition v0.0.1", TEXT_SHADOW | TEXT_CENTER, 0, 0, 512.f, 192.f, 16.f, 1, 1, 1, 1, 0);
+	auto ret = g_game->drawMainMenuFunc();
+	REMOVE_HOOK(drawText);
+	g_game->drawTextFunc((char*)"Custom Edition v0.0.1", TEXT_SHADOW | TEXT_CENTER, 0, 0, 512.f, 192.f, 16.f, 1, 1, 1, 1, 0);
 
-    return ret;
+	return ret;
 }
 
 int drawCreditsMenu()
 {
-    subhook::ScopedHookRemove remove(&g_hooks->drawCreditsMenuHook);
+	REMOVE_HOOK(drawCreditsMenu);
 
-    auto ret = g_game->drawCreditsMenuFunc();
-    subhook::ScopedHookRemove removea(&g_hooks->drawTextHook);
-    g_game->drawTextFunc((char*)"Custom Edition", TEXT_SHADOW, 0, 0, 200.f, 64.f, 16.f, 0.75, 0.75, 0.75, 1, 0);
-    g_game->drawTextFunc((char*)"noche", TEXT_SHADOW, 0, 0, 200.f, 96.f, 16.f, 1, 1, 1, 1, 0);
-    g_game->drawTextFunc((char*)"AssBlaster", TEXT_SHADOW, 0, 0, 200.f, 112.f, 16.f, 1, 1, 1, 1, 0);
-    
-    return ret;
+	auto ret = g_game->drawCreditsMenuFunc();
+	REMOVE_HOOK(drawText);
+	g_game->drawTextFunc((char*)"Custom Edition", TEXT_SHADOW, 0, 0, 200.f, 64.f, 16.f, 0.75, 0.75, 0.75, 1, 0);
+	g_game->drawTextFunc((char*)"noche", TEXT_SHADOW, 0, 0, 200.f, 96.f, 16.f, 1, 1, 1, 1, 0);
+	g_game->drawTextFunc((char*)"AssBlaster", TEXT_SHADOW, 0, 0, 200.f, 112.f, 16.f, 1, 1, 1, 1, 0);
+
+	return ret;
 }
 
 hooks::hooks()
 {
-    printf("satellite\n");
-    INSTALL(renderFrame);
-    INSTALL(drawHud);
-    INSTALL(drawText);
-    INSTALL(drawMainMenu);
-    INSTALL(drawCreditsMenu);
-    //INSTALL(createSound);
-    INSTALL(createParticle);
+	printf("Installing hooks...\n");
+	//INSTALL(renderFrame);
+	INSTALL(drawHud);
+	//INSTALL(drawText);
+	//INSTALL(drawMainMenu);
+	//INSTALL(drawCreditsMenu);
+	//INSTALL(createSound);
+	//INSTALL(createParticle);
+	printf("Hooks installed!\n");
 }
