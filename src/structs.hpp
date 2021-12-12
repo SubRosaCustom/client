@@ -15,7 +15,7 @@
 #define WIN_LIN(win, lin) lin
 #define RETURN_ADDRESS() std::uintptr_t(__builtin_return_address(0))
 #define FRAME_ADDRESS() std::uintptr_t(__builtin_frame_address(0))
-#define ERROR_AND_EXIT(error) printf(error); exit(1);
+#define ERROR_AND_EXIT(error, ...) printf(error, __VA_ARGS__); exit(1);
 
 #define THISCALL
 #define FASTCALL
