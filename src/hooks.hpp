@@ -3,6 +3,8 @@
 #include <memory>
 #include <type_traits>
 
+#include "game.hpp"
+
 #ifdef _WIN32
 #define SUBHOOK_STATIC
 #endif
@@ -13,6 +15,7 @@ class hooks
 {
 public:
     hooks();
+
     subhook::Hook renderFrameHook;
     subhook::Hook drawHudHook;
     subhook::Hook drawTextHook;

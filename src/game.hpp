@@ -19,25 +19,25 @@ public:
     game(std::uintptr_t base);
 
     std::uintptr_t drawText;
-    std::add_pointer_t<int64_t (char *, int, void*, void*, float, float, float, float, float, float, float, void*)> drawTextFunc;
+    std::add_pointer_t<int64_t (char *, int, int, int, float, float, float, float, float, float, float, int)> drawTextFunc;
 
     std::uintptr_t renderFrame;
-    std::add_pointer_t<int64_t(int64_t, int64_t, double*)> renderFrameFunc;
+    std::add_pointer_t<int64_t (int64_t, int64_t, double*)> renderFrameFunc;
     
     std::uintptr_t drawHud;
-    std::add_pointer_t<int64_t(int64_t)> drawHudFunc;
+    std::add_pointer_t<int64_t (int64_t)> drawHudFunc;
     
     std::uintptr_t drawMainMenu;
-    std::add_pointer_t<int(void)> drawMainMenuFunc;
+    std::add_pointer_t<int (void)> drawMainMenuFunc;
     
     std::uintptr_t drawCreditsMenu;
-    std::add_pointer_t<int(void)> drawCreditsMenuFunc;
+    std::add_pointer_t<int (void)> drawCreditsMenuFunc;
     
     std::uintptr_t createSound;
-    std::add_pointer_t<int(float, float, int, Vector3*)> createSoundFunc;
+    std::add_pointer_t<int (float, float, int, Vector3*)> createSoundFunc;
     
     std::uintptr_t createParticle;
-    std::add_pointer_t<int(float, int, Vector3*, Vector3*)> createParticleFunc;
+    std::add_pointer_t<int (float, int, Vector3*, Vector3*)> createParticleFunc;
 };
 
 inline std::unique_ptr<game> g_game;
