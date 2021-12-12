@@ -34,3 +34,6 @@
 .vs
 .vscode
 /build
+
+/Release
+/Debug
