@@ -38,27 +38,18 @@ int64_t drawHud(int64_t arg1)
 	REMOVE_HOOK(drawHud);
 
 	printf("drawHud called\n");
-	g_game->drawTextFunc((char*)"Custom Edition v0.0.1", TEXT_SHADOW | TEXT_CENTER, 0, 0, 0, 1, 1, 1, 1, 16.f, 192.f, 512.f);
+	g_game->drawTextFunc((char*)"Custom Edition v0.0.1", 512.f, 192.f, 16.f, TEXT_SHADOW | TEXT_CENTER, 1, 1, 1, 1, 0);
 	
 	auto ret = g_game->drawHudFunc(arg1);
 	return ret;
 }
 
-#ifdef _WIN32
-int64_t drawText(char* text, int params, int a, int b, float x, float y, float scale, float red, float green, float blue, float alpha, int c)
-#else
-int64_t drawText(char* text, int params, int a, int b, float x, float y, float scale, float red, float green, float blue, float alpha, int c)
-#endif
+int64_t drawText(char* text, float x, float y, float scale, int params, float red, float green, float blue, float alpha, int c)
 {
 	REMOVE_HOOK(drawText);
-
-	printf("DrawText %s, %#x, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %i\n", text, params, a, b, x, y, scale, red, green, blue, alpha, c);
-#ifdef _WIN32
-	auto ret = g_game->drawTextFunc(text, params, a, b, x, y, scale, red, green, blue, alpha, c);
-	//auto ret = g_game->drawTextFunc(text, c, alpha, blue, green, red, scale, y, x, b, a, params);
-#else
-	auto ret = g_game->drawTextFunc(text, params, a, b, x, y, scale, red, green, blue, alpha, c);
-#endif
+	// never do shit before this, stack corruption then sex
+	auto ret = g_game->drawTextFunc(text, x, y, params, scale, red, green, blue, alpha, c);
+	// printf("DrawText %s, %#x, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %i\n", text, params, a, b, x, y, scale, red, green, blue, alpha, c);
 	return ret;
 }
 
@@ -83,7 +74,7 @@ int drawMainMenu()
 
 	auto ret = g_game->drawMainMenuFunc();
 	REMOVE_HOOK(drawText);
-	g_game->drawTextFunc((char*)"Custom Edition v0.0.1", TEXT_SHADOW | TEXT_CENTER, 0, 0, 512.f, 192.f, 16.f, 1, 1, 1, 1, 0);
+	g_game->drawTextFunc((char*)"Custom Edition v0.0.1", 512.f, 192.f, 16.f, TEXT_SHADOW | TEXT_CENTER, 1, 1, 1, 1, 0);
 
 	return ret;
 }
@@ -94,9 +85,9 @@ int drawCreditsMenu()
 
 	auto ret = g_game->drawCreditsMenuFunc();
 	REMOVE_HOOK(drawText);
-	g_game->drawTextFunc((char*)"Custom Edition", TEXT_SHADOW, 0, 0, 200.f, 64.f, 16.f, 0.75, 0.75, 0.75, 1, 0);
-	g_game->drawTextFunc((char*)"noche", TEXT_SHADOW, 0, 0, 200.f, 96.f, 16.f, 1, 1, 1, 1, 0);
-	g_game->drawTextFunc((char*)"AssBlaster", TEXT_SHADOW, 0, 0, 200.f, 112.f, 16.f, 1, 1, 1, 1, 0);
+	g_game->drawTextFunc((char*)"Custom Edition", 200.f, 64.f, 16.f, TEXT_SHADOW, 0.75, 0.75, 0.75, 1, 0);
+	g_game->drawTextFunc((char*)"noche", 200.f, 96.f, 16.f, TEXT_SHADOW, 1, 1, 1, 1, 0);
+	g_game->drawTextFunc((char*)"AssBlaster", 200.f, 112.f, 16.f, TEXT_SHADOW, 1, 1, 1, 1, 0);
 
 	return ret;
 }
@@ -107,8 +98,8 @@ hooks::hooks()
 	//INSTALL(renderFrame);
 	INSTALL(drawHud);
 	//INSTALL(drawText);
-	//INSTALL(drawMainMenu);
-	//INSTALL(drawCreditsMenu);
+	INSTALL(drawMainMenu);
+	INSTALL(drawCreditsMenu);
 	//INSTALL(createSound);
 	//INSTALL(createParticle);
 	printf("Hooks installed!\n");
