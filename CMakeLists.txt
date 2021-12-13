@@ -35,6 +35,7 @@ add_library (client SHARED
 	src/hooks.cpp
 	src/game.cpp
 	src/main.cpp
+	src/api.cpp
 )
 
 set_property (TARGET client PROPERTY CXX_STANDARD 20)
