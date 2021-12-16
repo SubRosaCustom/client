@@ -60,7 +60,6 @@ int64_t drawText(char *text, int params, int a, int b, float x, float y, float s
 	std::string_view textStr = text;
 	auto argCount = std::count(textStr.begin(), textStr.end(), '/'); // this will break if alex uses a / escape or some shit (lol)
 	if (argCount > 0) {
-		std::cout << "executing varargs\n";
 		pushVarArgs(&alpha, static_cast<long long>(argCount));
 	}
 	auto ret = g_game->drawTextFunc(text, x, y, scale, params | TEXT_SHADOW, red, green, blue, alpha);
