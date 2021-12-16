@@ -14,7 +14,7 @@ pushVarArgs endp
 
 clearStack proc
 	readloop:
-		mov qword ptr [rsp + 40h + rcx * 8h], 0
+		mov dword ptr [rsp + 48h + rcx * 8h], 0000
 		sub rcx, 1
 	jnz readloop
 	ret
