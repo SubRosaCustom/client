@@ -22,7 +22,7 @@ public:
     #ifdef _WIN32
     std::add_pointer_t<int64_t (char *, float, float, float, int, float, float, float, float, ...)> drawTextFunc;
     #else
-    std::add_pointer_t<int64_t (char *, int, int, int, float, float, float, float, float, float, float, int)> drawTextFunc;
+    std::add_pointer_t<int64_t (char *, int, float, float, float, float, float, float, float, ...)> drawTextFunc;
     #endif
 
     std::uintptr_t renderFrame;

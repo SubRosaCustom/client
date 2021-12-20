@@ -20,13 +20,8 @@
 #include <cmath>
 #include <ctime>
 
-#ifdef _WIN32
-extern "C" void __fastcall pushVarArgs(void* addr, long long count);
-extern "C" void __fastcall clearStack(long long count);
-#else
-extern "C" void pushVarArgs(void* addr, long long count);
-extern "C" void clearStack(long long count);
-#endif
+extern "C" void FASTCALL pushVarArgs(void* addr, long long count);
+extern "C" void FASTCALL clearStack(long long count);
 
 #define INSTALL(name)                                                                                             \
 	if (!name##Hook.Install((void *)g_game->name##Func, (void *)::name, subhook::HookFlags::HookFlag64BitOffset)) \
@@ -60,26 +55,19 @@ int64_t drawText(char *text, int params, float x, float y, float scale, float re
 #endif
 {
 	REMOVE_HOOK(drawText);
-#ifdef _WIN32
 // never do shit before this, stack corruption then sex
 	std::string_view textStr = text;
 	auto argCount = std::count(textStr.begin(), textStr.end(), '/'); // this will break if alex uses a / escape or some shit (lol)
 	if (argCount > 0) {
 		pushVarArgs(&alpha, static_cast<long long>(argCount));
 	}
+#ifdef _WIN32
 	auto ret = g_game->drawTextFunc(text, x, y, scale, params | TEXT_SHADOW, red, green, blue, alpha);
-	if (argCount > 0)
-		clearStack(static_cast<long long>(argCount));
 #else
-	std::string_view textStr = text;
-	auto argCount = std::count(textStr.begin(), textStr.end(), '/'); // this will break if alex uses a / escape or some shit (lol)
-	if (argCount > 0) {
-		pushVarArgs(&alpha, static_cast<long long>(argCount));
-	}
 	auto ret = g_game->drawTextFunc(text, params | TEXT_SHADOW, x, y, scale, red, green, blue, alpha);
+#endif
 	if (argCount > 0)
 		clearStack(static_cast<long long>(argCount));
-#endif
 	// printf("DrawText %s, %#x, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %i\n", text, params, a, b, x, y, scale, red, green, blue, alpha, c);
 	return ret;
 }
