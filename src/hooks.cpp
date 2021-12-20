@@ -20,8 +20,13 @@
 #include <cmath>
 #include <ctime>
 
+#ifdef _WIN32
 extern "C" void __fastcall pushVarArgs(void* addr, long long count);
 extern "C" void __fastcall clearStack(long long count);
+#else
+extern "C" void pushVarArgs(void* addr, long long count);
+extern "C" void clearStack(long long count);
+#endif
 
 #define INSTALL(name)                                                                                             \
 	if (!name##Hook.Install((void *)g_game->name##Func, (void *)::name, subhook::HookFlags::HookFlag64BitOffset)) \
