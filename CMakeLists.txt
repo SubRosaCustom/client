@@ -12,8 +12,14 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fno-rtti")
 
+enable_language(ASM_NASM)
+
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} --no-gnu-unique")
+endif()
+
+if(UNIX)
+	string(APPEND CMAKE_ASM_NASM_FLAGS "-dUNIX=1")
 endif()
 
 add_compile_definitions (
@@ -36,6 +42,7 @@ add_library (client SHARED
 	src/game.cpp
 	src/main.cpp
 	src/api.cpp
+	src/drawText.asm
 )
 
 set_property (TARGET client PROPERTY CXX_STANDARD 20)

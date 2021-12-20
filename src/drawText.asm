@@ -1,23 +1,26 @@
-public pushVarArgs
-public clearStack
+global pushVarArgs
+global clearStack
 
-.code
+section .text
 
-pushVarArgs proc
-	readloop:
-		mov r8d, dword ptr [rcx + rdx * 8h]
-		mov [rsp + 48h + rdx * 8h], r8d
+pushVarArgs:
+	.readloop:
+		mov r8d, dword [rcx + rdx * 8h]
+		%ifdef UNIX
+			mov [rsp - 0b8h + 10h + rdx * 8h], r8d ; this probably doesn't work, i need it to be tested
+		%else
+			mov [rsp + 48h + rdx * 8h], r8d
+		%endif
 		sub rdx, 1
-	jnz readloop
+	jnz .readloop
 	ret
-pushVarArgs endp
-
-clearStack proc
-	readloop:
-		mov dword ptr [rsp + 48h + rcx * 8h], 0000
+clearStack:
+	.readloop:
+		%ifdef UNIX
+			mov dword [rsp - 0b8h + 10h + rcx * 8h], 0000 ; this probably doesn't work, i need it to be tested
+		%else
+			mov dword [rsp + 48h + rcx * 8h], 0000
+		%endif
 		sub rcx, 1
-	jnz readloop
+	jnz .readloop
 	ret
-clearStack endp
-
-end
