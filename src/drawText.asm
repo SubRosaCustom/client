@@ -7,7 +7,7 @@ pushVarArgs:
 	.readloop:
 		%ifdef UNIX
 			mov r8d, dword [rdi + rsi * 8h]
-			mov [rsp + 10h + rsi * 8h], r8d ; this probably doesn't work, i need it to be tested
+			mov [rsp + 8h + rsi * 8h], r8d ; this probably doesn't work, i need it to be tested
 			sub rsi, 1
 		%else
 			mov r8d, dword [rcx + rdx * 8h]
@@ -19,7 +19,7 @@ pushVarArgs:
 clearStack:
 	.readloop:
 		%ifdef UNIX
-			mov dword [rsp + 10h + rdi * 8h], 0000 ; this probably doesn't work, i need it to be tested
+			mov dword [rsp + 8h + rdi * 8h], 0000 ; this probably doesn't work, i need it to be tested
 			sub rdi, 1
 		%else
 			mov dword [rsp + 48h + rcx * 8h], 0000
