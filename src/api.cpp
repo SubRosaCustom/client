@@ -12,9 +12,9 @@ namespace api
         va_start(list, a);
         vsnprintf(buffer, 255, text, list);
 #ifdef _WIN32
-        g_game->drawTextFunc(buffer, x, y, scale, params, r, g, b, a, 0);
+        g_game->drawTextFunc(buffer, x, y, scale, params, r, g, b, a);
 #else
-        g_game->drawTextFunc(buffer, params, 0, 0, x, y, scale, r, g, b, a, 0);
+        g_game->drawTextFunc(buffer, params, 0, 0, x, y, scale, r, g, b, a);
 #endif
         va_end(list);
     }
