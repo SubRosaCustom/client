@@ -14,7 +14,7 @@ namespace api
 #ifdef _WIN32
         g_game->drawTextFunc(buffer, x, y, scale, params, r, g, b, a);
 #else
-        g_game->drawTextFunc(buffer, params, 0, 0, x, y, scale, r, g, b, a);
+        g_game->drawTextFunc(buffer, params, x, y, scale, r, g, b, a);
 #endif
         va_end(list);
     }
