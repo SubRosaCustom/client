@@ -9,7 +9,7 @@ namespace api
     {
         char buffer[256];
         va_list list;
-        va_start(list, text);
+        va_start(list, a);
         vsnprintf(buffer, 255, text, list);
 #ifdef _WIN32
         g_game->drawTextFunc(buffer, x, y, scale, params, r, g, b, a, 0);
