@@ -14,6 +14,7 @@ linking)
 
 #include <stdio.h>
 #include <string.h>
+
 #include <iostream>
 
 #include "structs.hpp"  // for WIN_LIN
@@ -25,8 +26,9 @@ static constexpr int maxReadSize = 4096;
 
 static inline void throwSafe() {
 	char error[256];
-	
-	throw std::runtime_error(std::system_category().message(WIN_LIN(WSAGetLastError(), errno)));
+
+	throw std::runtime_error(
+	    std::system_category().message(WIN_LIN(WSAGetLastError(), errno)));
 	// strerror_r(errno, error, sizeof(error))
 }
 
@@ -38,12 +40,14 @@ TCPConnection::TCPConnection(std::string_view ip, int port) {
 
 	addrinfo* serverInfo;
 
-	if (getaddrinfo(ip.data(), std::to_string(port).c_str(), &serverAddress, &serverInfo) != 0)
+	if (getaddrinfo(ip.data(), std::to_string(port).c_str(), &serverAddress,
+	                &serverInfo) != 0)
 		throw std::runtime_error("getaddrinof failed");
 
 	addrinfo* p;
 	for (p = serverInfo; p != NULL; p = p->ai_next) {
-		if ((socketFD = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+		if ((socketFD = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) ==
+		    -1) {
 			perror("socket failed trying next");
 			continue;
 		}
@@ -107,7 +111,6 @@ int TCPConnection::send(std::string_view data) {
 	if (socketFD == -1)
 		throw std::runtime_error("Trying to send on closed session");
 
-
 	if (data.empty()) {
 		throw std::invalid_argument("Data is empty");
 	}
@@ -147,7 +150,7 @@ TCPSocket::TCPSocket(const unsigned short port) {
 		throw std::runtime_error("Failed to configure socket");
 
 	// make socket non-blocking
-	unsigned long iagree = 1; // set just in case
+	unsigned long iagree = 1;  // set just in case
 	if (WIN_LIN(ioctlsocket, ioctl)(socketFD, FIONBIO, &iagree) == -1)
 		throw std::runtime_error("Failed to configure socket");
 
