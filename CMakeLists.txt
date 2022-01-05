@@ -39,9 +39,11 @@ add_library (client SHARED
 	src/api.cpp
 )
 
-find_library(WSOCK32_LIBRARY wsock32)
-find_library(WS2_32_LIBRARY ws2_32)
-target_link_libraries(client wsock32 ws2_32)
+if (WIN32)
+	find_library(WSOCK32_LIBRARY wsock32)
+	find_library(WS2_32_LIBRARY ws2_32)
+	target_link_libraries(client wsock32 ws2_32)
+endif()
 
 set_property (TARGET client PROPERTY CXX_STANDARD 20)
 
