@@ -10,6 +10,7 @@
 #include "hooks.hpp"
 #include "structs.hpp"
 #include "tcpSocket.hpp"
+#include "utils.hpp"
 
 uintptr_t baseAddress;
 
@@ -69,6 +70,7 @@ inline uintptr_t getBaseAddress() {
 void __attribute__((constructor)) entry() {
 	g_game = std::make_unique<game>(getBaseAddress());
 	g_hooks = std::make_unique<hooks>();
+	g_utils->log(DEBUG, "Fortnite Card");
 }
 
 #endif
