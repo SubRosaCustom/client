@@ -2,12 +2,14 @@
 #include <fstream>
 
 #ifdef _WIN32
+#include <WinSock2.h>   // always needs to be included before "Windows.h"
 #include <Windows.h>
 #endif
 
 #include "structs.hpp"
 #include "game.hpp"
 #include "hooks.hpp"
+#include "tcpSocket.h"
 
 uintptr_t baseAddress;
 
@@ -42,6 +44,7 @@ BOOL WINAPI DllMain(
             return false;
         }
 #endif
+        SocketInitalization();
 
         g_game = std::make_unique<game>(getBaseAddress());
         g_hooks = std::make_unique<hooks>();
