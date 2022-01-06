@@ -7,6 +7,7 @@
 #include "game.hpp"
 #include "structs.hpp"
 #include "tcpSocket.hpp"
+#include "utils.hpp"
 
 #ifdef _WIN32
 #include <Psapi.h>
@@ -27,7 +28,7 @@
 	                        subhook::HookFlags::HookFlag64BitOffset)) { \
 		ERROR_AND_EXIT("Hook %sHook failed to install", #name);           \
 	}                                                                   \
-	printf(#name " hooked!\n");
+	g_utils->log(INFO, #name " hooked!")
 
 #define REMOVE_HOOK(name) \
 	subhook::ScopedHookRemove name##Remove(&g_hooks->name##Hook);
@@ -107,7 +108,8 @@ int drawCreditsMenu() {
 }
 
 hooks::hooks() {
-	printf("Installing hooks...\n");
+	g_utils->log(INFO, "Installing hooks...");
+
 	INSTALL(renderFrame);
 	INSTALL(drawHud);
 	INSTALL(drawText);
@@ -115,5 +117,5 @@ hooks::hooks() {
 	INSTALL(drawCreditsMenu);
 	// INSTALL(createSound);
 	// INSTALL(createParticle);
-	printf("Hooks installed!\n");
+	g_utils->log(INFO, "Hooks insatlled!");
 }

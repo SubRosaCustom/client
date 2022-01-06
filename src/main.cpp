@@ -68,6 +68,7 @@ inline uintptr_t getBaseAddress() {
 }
 
 void __attribute__((constructor)) entry() {
+	g_utils = std::make_unique<utils>(INFO);
 	g_game = std::make_unique<game>(getBaseAddress());
 	g_hooks = std::make_unique<hooks>();
 	g_utils->log(DEBUG, "Fortnite Card");
