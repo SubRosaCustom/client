@@ -23,7 +23,7 @@
 #include <cmath>
 #include <ctime>
 
-extern "C" void FASTCALL pushVarArgs(void* addr, long long count);
+extern "C" void FASTCALL pushVarArgs(void *addr, long long count);
 extern "C" void FASTCALL clearStack(long long count);
 
 #define INSTALL(name)                                                 \
@@ -51,27 +51,33 @@ int64_t drawHud(int64_t arg1) {
 }
 
 #ifdef _WIN32
-int64_t drawText(char *text, float x, float y, float scale, int params, float red, float green, float blue, float alpha, ...)
+int64_t drawText(char *text, float x, float y, float scale, int params,
+                 float red, float green, float blue, float alpha, ...)
 #else
-int64_t drawText(char *text, int params, float x, float y, float scale, float red, float green, float blue, float alpha, int c)
+int64_t drawText(char *text, int params, float x, float y, float scale,
+                 float red, float green, float blue, float alpha, int c)
 #endif
 {
 	REMOVE_HOOK(drawText);
 // never do shit before this, stack corruption then sex
 #ifdef _WIN32
 	std::string_view textStr = text;
-	auto argCount = std::count(textStr.begin(), textStr.end(), '/'); // this will break if alex uses a / escape or some shit (lol)
+	auto argCount = std::count(
+	    textStr.begin(), textStr.end(),
+	    '/');  // this will break if alex uses a / escape or some shit (lol)
 	if (argCount > 0) {
 		pushVarArgs(&alpha, static_cast<long long>(argCount));
 	}
-	auto ret = g_game->drawTextFunc(text, x, y, scale, params | TEXT_SHADOW, red, green, blue, alpha);
+	auto ret = g_game->drawTextFunc(text, x, y, scale, params | TEXT_SHADOW, red,
+	                                green, blue, alpha);
 
-	if (argCount > 0)
-		clearStack(static_cast<long long>(argCount));
+	if (argCount > 0) clearStack(static_cast<long long>(argCount));
 #else
-	auto ret = g_game->drawTextFunc(text, params | TEXT_SHADOW, x, y, scale, red, green, blue, alpha, c);
+	auto ret = g_game->drawTextFunc(text, params | TEXT_SHADOW, x, y, scale, red,
+	                                green, blue, alpha, c);
 #endif
-	// printf("DrawText %s, %#x, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %i\n", text, params, a, b, x, y, scale, red, green, blue, alpha, c);
+	// printf("DrawText %s, %#x, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f,
+	// %.2f, %i\n", text, params, a, b, x, y, scale, red, green, blue, alpha, c);
 	return ret;
 }
 
