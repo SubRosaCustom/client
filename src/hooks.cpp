@@ -56,18 +56,19 @@ int64_t drawText(char *text, int params, float x, float y, float scale, float re
 {
 	REMOVE_HOOK(drawText);
 // never do shit before this, stack corruption then sex
+#ifdef _WIN32
 	std::string_view textStr = text;
 	auto argCount = std::count(textStr.begin(), textStr.end(), '/'); // this will break if alex uses a / escape or some shit (lol)
 	if (argCount > 0) {
 		pushVarArgs(&alpha, static_cast<long long>(argCount));
 	}
-#ifdef _WIN32
 	auto ret = g_game->drawTextFunc(text, x, y, scale, params | TEXT_SHADOW, red, green, blue, alpha);
+
+	if (argCount > 0)
+		clearStack(static_cast<long long>(argCount));
 #else
 	auto ret = g_game->drawTextFunc(text, params | TEXT_SHADOW, x, y, scale, red, green, blue, alpha);
 #endif
-	if (argCount > 0)
-		clearStack(static_cast<long long>(argCount));
 	// printf("DrawText %s, %#x, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %i\n", text, params, a, b, x, y, scale, red, green, blue, alpha, c);
 	return ret;
 }
