@@ -14,7 +14,6 @@
 class hooks {
  public:
 	hooks();
-	void install();
 
 	subhook::Hook renderFrameHook;
 	subhook::Hook drawHudHook;

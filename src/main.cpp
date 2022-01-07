@@ -1,5 +1,6 @@
 #include <fstream>
 #include <memory>
+#include <system_error>
 
 #ifdef _WIN32
 #include <WinSock2.h>  // always needs to be included before "Windows.h"
@@ -22,21 +23,24 @@ BOOL WINAPI DllMain(_In_ HINSTANCE hinstDll, _In_ DWORD fdwReason,
                     _In_opt_ LPVOID lpvReserved) {
 	if (fdwReason == DLL_PROCESS_ATTACH) {
 		if (!AllocConsole()) {
-			ERROR_AND_EXIT("Failed to allocate console. Error code: %i",
-			               GetLastError());
+			ERROR_AND_EXIT("Failed to allocate console. Error code: %i (%s)",
+			               GetLastError(),
+			               std::system_category().message(GetLastError()));
 			return false;
 		}
 
 		_iobuf* data;
 		const errno_t res = freopen_s(&data, "CONOUT$", "w", stdout);
 		if (res != 0) {
-			ERROR_AND_EXIT("Failed to open stdout filestream. Error code: %i", res);
+			ERROR_AND_EXIT("Failed to open stdout filestream. Error code: %i (%s)",
+			               res, std::system_category().message(GetLastError()));
 			return false;
 		}
 
 		if (!SetConsoleTitleA("Sub Rosa: Custom Console")) {
-			ERROR_AND_EXIT("Failed to set console title. Error code: %i",
-			               GetLastError());
+			ERROR_AND_EXIT("Failed to set console title. Error code: %i (%s)",
+			               GetLastError(),
+			               std::system_category().message(GetLastError()));
 			return false;
 		}
 
@@ -72,7 +76,7 @@ void __attribute__((constructor)) entry() {
 	g_utils = std::make_unique<utils>(INFO);
 	g_game = std::make_unique<game>(getBaseAddress());
 	g_hooks = std::make_unique<hooks>();
-	g_utils->log(DEBUG, "Fortnite Card");
+	g_utils->log(DEBUG, "Everything done");
 }
 
 #endif

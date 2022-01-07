@@ -23,14 +23,15 @@
 #include <cmath>
 #include <ctime>
 
+#include "fmt/format.h"
+
 extern "C" void FASTCALL pushVarArgs(void *addr, long long count);
 extern "C" void FASTCALL clearStack(long long count);
-
-#define INSTALL(name)                                                 \
-	if (!name##Hook.Install((void *)g_game->name##Func, (void *)::name, \
-	                        subhook::HookFlags::HookFlag64BitOffset)) { \
-		ERROR_AND_EXIT("Hook %sHook failed to install", #name);           \
-	}                                                                   \
+#define INSTALL(name)                                                    \
+	if (!name##Hook.Install((void *)g_game->name##Func, (void *)::name,    \
+	                        subhook::HookFlags::HookFlag64BitOffset)) {    \
+		ERROR_AND_EXIT(fmt::format("Hook {}Hook failed to install", #name)); \
+	}                                                                      \
 	g_utils->log(INFO, #name " hooked!")
 
 #define REMOVE_HOOK(name) \
@@ -120,9 +121,7 @@ int drawCreditsMenu() {
 
 hooks::hooks() {
 	g_utils->log(INFO, "Initializing hooks...");
-}
-
-void hooks::install() {
+	
 	INSTALL(renderFrame);
 	INSTALL(drawHud);
 	INSTALL(drawText);

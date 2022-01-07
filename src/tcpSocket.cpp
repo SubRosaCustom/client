@@ -16,6 +16,8 @@ linking)
 #include <string.h>
 
 #include <iostream>
+#include <cerrno>
+#include <cstring>
 
 #include "structs.hpp"  // for WIN_LIN
 
