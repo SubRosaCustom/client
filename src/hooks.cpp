@@ -119,15 +119,7 @@ int drawCreditsMenu() {
 }
 
 hooks::hooks() {
-	g_utils->log(INFO, "Installing hooks...");
-
-	// INSTALL(renderFrame);
-	// INSTALL(drawHud);
-	// INSTALL(drawText);
-	// INSTALL(drawMainMenu);
-	// INSTALL(drawCreditsMenu);
-	// INSTALL(createSound);
-	// INSTALL(createParticle);
+	g_utils->log(INFO, "Initializing hooks...");
 }
 
 void hooks::install() {
