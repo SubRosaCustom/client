@@ -12,6 +12,11 @@
 #include <string>
 #include <string_view>
 
+#include "fmt/color.h"
+#include "fmt/core.h"
+#include "fmt/chrono.h"
+#include "fmt/format.h"
+
 enum LOG_LEVELS {
 	DEBUG,
 	INFO,
@@ -25,39 +30,49 @@ class utils {
 
 	utils(LOG_LEVELS level) : minLogLevel(level){};
 
-	std::string_view getLogPrefix(LOG_LEVELS level) {
+	std::string_view getLogLevelColor(LOG_LEVELS level) {
+		fg(fmt::color::crimson);
+	}
+
+	void printLogPrefix(LOG_LEVELS level) {
 		switch (level) {
 			case DEBUG:
-				return "\x1B[32mDebug";
+				fmt::print(fg(fmt::color::blue), "Debug");
 				break;
 			case INFO:
-				return "\x1B[34mInfo";
+				fmt::print(fg(fmt::color::green), "Info");
 				break;
 			case WARN:
-				return "\x1B[33mWarn";
+				fmt::print(fg(fmt::color::yellow), "Warn");
 				break;
 			case ERROR:
-				return "\x1B[31mError";
+				fmt::print(fg(fmt::color::red), "Error");
 				break;
-
 			default:
-				return "\x1b[31mUnk";
+				fmt::print(fg(fmt::color::red), "Unk");
 				break;
 		}
 	}
 
-	void log(LOG_LEVELS type, const char* text, ...) {
+	template <typename... Args>
+	void log(LOG_LEVELS type, std::string_view text, Args... args) {
 		if (minLogLevel <= (int)type) {
-			char buffer[256];
-			va_list list;
-			va_start(list, text);
-			vsnprintf(buffer, 255, text, list);
-			auto now = std::chrono::system_clock::now();
-			auto in_time_t = std::chrono::system_clock::to_time_t(now);
-			std::cout << "[\x1B[90m"
-			          << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d|%X ")
-			          << getLogPrefix(type) << "] \033[0m" << buffer << '\n';
-			va_end(list);
+			time_t timetoday;
+   			time (&timetoday);
+			fmt::print(fg(fmt::color::gray), "[");
+			fmt::print("{:%Y-%m-%d %X} ", std::chrono::system_clock::now());
+			printLogPrefix(type);
+			fmt::print(fg(fmt::color::gray), "]");
+			fmt::print(" {}\n", text, args...);
+			// fmt::print(fg(fmt::color::crimson), "{}", LEVEL)
+			// fmt::print(fg(fmt::color::), "] {}", text, args...);
+			// fmt::vformat("{}", args);
+
+			// auto now = std::chrono::system_clock::now();
+			// auto in_time_t = std::chrono::system_clock::to_time_t(now);
+			// std::cout << "[\x1B[90m"
+			        //   << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d|%X ")
+			        //   << getLogPrefix(type) << "] \033[0m" << text << '\n';
 		}
 	};
 };

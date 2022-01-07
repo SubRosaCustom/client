@@ -27,6 +27,7 @@ find_package (Threads REQUIRED)
 
 find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED)
+find_package(fmt REQUIRED)
 
 add_library (client SHARED
 	../subhook/subhook.c
@@ -48,6 +49,7 @@ endif()
 set_property (TARGET client PROPERTY CXX_STANDARD 20)
 
 target_include_directories(client PRIVATE ${SDL2_INCLUDE_DIRS})
-target_link_libraries(client PRIVATE SDL2 GL ${CMAKE_DL_LIBS} Threads::Threads stdc++fs)
+target_link_libraries(client PRIVATE SDL2 GL ${CMAKE_DL_LIBS} Threads::Threads stdc++fs fmt::fmt-header-only)
 include_directories (${CMAKE_SOURCE_DIR}/subhook)
+include_directories (${CMAKE_SOURCE_DIR}/fmt/include)
 target_link_options(client PRIVATE LINKER:--no-undefined)

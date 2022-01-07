@@ -22,12 +22,13 @@
 
 #include <cmath>
 #include <ctime>
+#include "fmt/format.h"
 
-#define INSTALL(name)                                                 \
-	if (!name##Hook.Install((void *)g_game->name##Func, (void *)::name, \
-	                        subhook::HookFlags::HookFlag64BitOffset)) { \
-		ERROR_AND_EXIT("Hook %sHook failed to install", #name);           \
-	}                                                                   \
+#define INSTALL(name)                                                    \
+	if (!name##Hook.Install((void *)g_game->name##Func, (void *)::name,    \
+	                        subhook::HookFlags::HookFlag64BitOffset)) {    \
+		ERROR_AND_EXIT(fmt::format("Hook {}Hook failed to install", #name)); \
+	}                                                                      \
 	g_utils->log(INFO, #name " hooked!")
 
 #define REMOVE_HOOK(name) \
