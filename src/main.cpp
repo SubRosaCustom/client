@@ -46,8 +46,10 @@ BOOL WINAPI DllMain(_In_ HINSTANCE hinstDll, _In_ DWORD fdwReason,
 			throw std::runtime_error("Failed to intalize WSA");
 		}
 
+		g_utils = std::make_unique<utils>(INFO);
 		g_game = std::make_unique<game>(getBaseAddress());
 		g_hooks = std::make_unique<hooks>();
+		g_hooks->install();
 	}
 	return TRUE;
 }

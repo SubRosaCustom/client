@@ -98,8 +98,8 @@ int drawMainMenu() {
 	REMOVE_HOOK(drawMainMenu);
 
 	auto ret = g_game->drawMainMenuFunc();
-	REMOVE_HOOK(drawText);
-	api::drawText("Custom Edition v0.0.1", 512.f, 192.f, 16.f,
+
+	api::drawText("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", 512.f, 192.f, 16.f,
 	              TEXT_SHADOW | TEXT_CENTER, 1, 1, 1, 1);
 
 	return ret;
@@ -109,7 +109,7 @@ int drawCreditsMenu() {
 	REMOVE_HOOK(drawCreditsMenu);
 
 	auto ret = g_game->drawCreditsMenuFunc();
-	REMOVE_HOOK(drawText);
+
 	api::drawText("Custom Edition", 200.f, 64.f, 16.f, TEXT_SHADOW, 0.75, 0.75,
 	              0.75, 1);
 	api::drawText("noche", 200.f, 96.f, 16.f, TEXT_SHADOW, 1, 1, 1, 1);
@@ -121,12 +121,21 @@ int drawCreditsMenu() {
 hooks::hooks() {
 	g_utils->log(INFO, "Installing hooks...");
 
+	// INSTALL(renderFrame);
+	// INSTALL(drawHud);
+	// INSTALL(drawText);
+	// INSTALL(drawMainMenu);
+	// INSTALL(drawCreditsMenu);
+	// INSTALL(createSound);
+	// INSTALL(createParticle);
+}
+
+void hooks::install() {
 	INSTALL(renderFrame);
 	INSTALL(drawHud);
 	INSTALL(drawText);
 	INSTALL(drawMainMenu);
 	INSTALL(drawCreditsMenu);
-	// INSTALL(createSound);
-	// INSTALL(createParticle);
-	g_utils->log(INFO, "Hooks insatlled!");
+
+	g_utils->log(INFO, "Hooks installed!");
 }
