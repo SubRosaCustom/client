@@ -69,5 +69,5 @@ class utils {
 inline std::unique_ptr<utils> g_utils;
 
 #ifdef _WIN32
-#define ERROR 0 // awful MSVC fix
+#define ERROR 0  // awful MSVC fix
 #endif
