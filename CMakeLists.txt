@@ -38,12 +38,19 @@ add_library (client SHARED
 	../subhook/subhook.c
 	../subhook/subhook_unix.c
 	../subhook/subhook_x86.c
+	src/tcpSocket.cpp
 	src/hooks.cpp
 	src/game.cpp
 	src/main.cpp
 	src/api.cpp
 	src/drawText.asm
 )
+
+if (WIN32)
+	find_library(WSOCK32_LIBRARY wsock32)
+	find_library(WS2_32_LIBRARY ws2_32)
+	target_link_libraries(client wsock32 ws2_32)
+endif()
 
 set_property (TARGET client PROPERTY CXX_STANDARD 20)
 
