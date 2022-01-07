@@ -99,7 +99,7 @@ int drawMainMenu() {
 
 	auto ret = g_game->drawMainMenuFunc();
 
-	api::drawText("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", 512.f, 192.f, 16.f,
+	api::drawText("Custom Edition v0.0.1", 512.f, 192.f, 16.f,
 	              TEXT_SHADOW | TEXT_CENTER, 1, 1, 1, 1);
 
 	return ret;
