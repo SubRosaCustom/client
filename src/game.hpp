@@ -1,9 +1,9 @@
 #pragma once
 
-#include "structs.hpp"
-
-#include <memory>
 #include <cstdint>
+#include <memory>
+
+#include "structs.hpp"
 
 #define TEXT_CENTER 0x1
 #define TEXT_UP 0x4

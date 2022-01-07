@@ -1,5 +1,5 @@
 #include "api.hpp"
-#include "game.hpp"
+
 #include <cstdarg>
 #include <string>
 
@@ -16,6 +16,6 @@ namespace api
 #else
         g_game->drawTextFunc(buffer, params, x, y, scale, r, g, b, a);
 #endif
-        va_end(list);
-    }
+	va_end(list);
 }
+}  // namespace api

@@ -11,18 +11,17 @@
 
 #include "subhook.h"
 
-class hooks
-{
-public:
-    hooks();
+class hooks {
+ public:
+	hooks();
 
-    subhook::Hook renderFrameHook;
-    subhook::Hook drawHudHook;
-    subhook::Hook drawTextHook;
-    subhook::Hook createSoundHook;
-    subhook::Hook drawMainMenuHook;
-    subhook::Hook drawCreditsMenuHook;
-    subhook::Hook createParticleHook;
+	subhook::Hook renderFrameHook;
+	subhook::Hook drawHudHook;
+	subhook::Hook drawTextHook;
+	subhook::Hook createSoundHook;
+	subhook::Hook drawMainMenuHook;
+	subhook::Hook drawCreditsMenuHook;
+	subhook::Hook createParticleHook;
 };
 
 inline std::unique_ptr<hooks> g_hooks;
