@@ -29,6 +29,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\nasm.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -68,7 +69,6 @@
     <ClCompile Include="src\api.cpp" />
     <ClCompile Include="src\game.cpp" />
     <ClCompile Include="src\hooks.cpp" />
-    <ClCompile Include="src\hookWrapper.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\tcpSocket.cpp" />
     <ClCompile Include="subhook\subhook.c" />
@@ -77,13 +77,18 @@
     <ClInclude Include="src\api.hpp" />
     <ClInclude Include="src\game.hpp" />
     <ClInclude Include="src\hooks.hpp" />
-    <ClInclude Include="src\hookWrapper.hpp" />
     <ClInclude Include="src\structs.hpp" />
     <ClInclude Include="src\tcpSocket.h" />
     <ClInclude Include="subhook\subhook.h" />
     <ClInclude Include="subhook\subhook_private.h" />
   </ItemGroup>
+  <ItemGroup>
+    <NASM Include="src\drawText.asm">
+      <FileType>Document</FileType>
+    </NASM>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\nasm.targets" />
   </ImportGroup>
 </Project>

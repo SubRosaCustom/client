@@ -38,6 +38,7 @@ add_library (client SHARED
 	src/game.cpp
 	src/main.cpp
 	src/api.cpp
+	src/drawText.asm
 )
 
 if (WIN32)

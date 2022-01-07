@@ -17,6 +17,10 @@
 #include "fmt/chrono.h"
 #include "fmt/format.h"
 
+#ifdef _WIN32
+#undef ERROR  // awful MSVC fix
+#endif
+
 enum LOG_LEVELS {
 	DEBUG,
 	INFO,
@@ -78,3 +82,7 @@ class utils {
 };
 
 inline std::unique_ptr<utils> g_utils;
+
+#ifdef _WIN32
+#define ERROR 0  // awful MSVC fix
+#endif

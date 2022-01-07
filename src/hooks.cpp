@@ -22,8 +22,11 @@
 
 #include <cmath>
 #include <ctime>
+
 #include "fmt/format.h"
 
+extern "C" void FASTCALL pushVarArgs(void *addr, long long count);
+extern "C" void FASTCALL clearStack(long long count);
 #define INSTALL(name)                                                    \
 	if (!name##Hook.Install((void *)g_game->name##Func, (void *)::name,    \
 	                        subhook::HookFlags::HookFlag64BitOffset)) {    \
@@ -50,21 +53,29 @@ int64_t drawHud(int64_t arg1) {
 
 #ifdef _WIN32
 int64_t drawText(char *text, float x, float y, float scale, int params,
-                 float red, float green, float blue, float alpha, void *a)
+                 float red, float green, float blue, float alpha, ...)
 #else
-int64_t drawText(char *text, int params, int a, int b, float x, float y,
-                 float scale, float red, float green, float blue, float alpha,
-                 int c)
+int64_t drawText(char *text, int params, float x, float y, float scale,
+                 float red, float green, float blue, float alpha, int c)
 #endif
 {
 	REMOVE_HOOK(drawText);
+// never do shit before this, stack corruption then sex
 #ifdef _WIN32
-	// never do shit before this, stack corruption then sex
+	std::string_view textStr = text;
+	auto argCount = std::count(
+	    textStr.begin(), textStr.end(),
+	    '/');  // this will break if alex uses a / escape or some shit (lol)
+	if (argCount > 0) {
+		pushVarArgs(&alpha, static_cast<long long>(argCount));
+	}
 	auto ret = g_game->drawTextFunc(text, x, y, scale, params | TEXT_SHADOW, red,
-	                                green, blue, alpha, a);
+	                                green, blue, alpha);
+
+	if (argCount > 0) clearStack(static_cast<long long>(argCount));
 #else
-	auto ret = g_game->drawTextFunc(text, params | TEXT_SHADOW, a, b, x, y, scale,
-	                                red, green, blue, alpha, c);
+	auto ret = g_game->drawTextFunc(text, params | TEXT_SHADOW, x, y, scale, red,
+	                                green, blue, alpha, c);
 #endif
 	// printf("DrawText %s, %#x, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f,
 	// %.2f, %i\n", text, params, a, b, x, y, scale, red, green, blue, alpha, c);
@@ -88,7 +99,7 @@ int drawMainMenu() {
 	REMOVE_HOOK(drawMainMenu);
 
 	auto ret = g_game->drawMainMenuFunc();
-	REMOVE_HOOK(drawText);
+
 	api::drawText("Custom Edition v0.0.1", 512.f, 192.f, 16.f,
 	              TEXT_SHADOW | TEXT_CENTER, 1, 1, 1, 1);
 
@@ -99,7 +110,7 @@ int drawCreditsMenu() {
 	REMOVE_HOOK(drawCreditsMenu);
 
 	auto ret = g_game->drawCreditsMenuFunc();
-	REMOVE_HOOK(drawText);
+
 	api::drawText("Custom Edition", 200.f, 64.f, 16.f, TEXT_SHADOW, 0.75, 0.75,
 	              0.75, 1);
 	api::drawText("noche", 200.f, 96.f, 16.f, TEXT_SHADOW, 1, 1, 1, 1);
@@ -109,14 +120,13 @@ int drawCreditsMenu() {
 }
 
 hooks::hooks() {
-	g_utils->log(INFO, "Installing hooks...");
-
+	g_utils->log(INFO, "Initializing hooks...");
+	
 	INSTALL(renderFrame);
 	INSTALL(drawHud);
 	INSTALL(drawText);
 	INSTALL(drawMainMenu);
 	INSTALL(drawCreditsMenu);
-	// INSTALL(createSound);
-	// INSTALL(createParticle);
-	g_utils->log(INFO, "Hooks insatlled!");
+
+	g_utils->log(INFO, "Hooks installed!");
 }
