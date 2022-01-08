@@ -119,8 +119,8 @@ int drawCreditsMenu() {
 	return ret;
 }
 
-hooks::hooks() {
-	g_utils->log(INFO, "Initializing hooks...");
+void hooks::install() {
+	g_utils->log(INFO, "Installing hooks...");
 	
 	INSTALL(renderFrame);
 	INSTALL(drawHud);
