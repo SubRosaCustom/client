@@ -27,12 +27,13 @@
 
 extern "C" void FASTCALL pushVarArgs(void *addr, long long count);
 extern "C" void FASTCALL clearStack(long long count);
+
 #define INSTALL(name)                                                    \
 	if (!name##Hook.Install((void *)g_game->name##Func, (void *)::name,    \
 	                        subhook::HookFlags::HookFlag64BitOffset)) {    \
 		ERROR_AND_EXIT(fmt::format("Hook {}Hook failed to install", #name)); \
 	}                                                                      \
-	g_utils->log(INFO, #name " hooked!")
+	g_utils->log(DEBUG, #name " hooked!")
 
 #define REMOVE_HOOK(name) \
 	subhook::ScopedHookRemove name##Remove(&g_hooks->name##Hook);

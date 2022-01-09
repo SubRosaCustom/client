@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <fstream>
 #include <memory>
 
 #include "structs.hpp"
@@ -14,8 +15,28 @@
 #define TEXT_FORMAT 0x40
 
 class game {
+ private:
+	std::uintptr_t baseAddress;
+
  public:
-	game(std::uintptr_t base);
+	game();
+	inline uintptr_t getBaseAddress() {
+		if (!baseAddress) {
+#if _WIN32
+			baseAddress = (uintptr_t)GetModuleHandle(NULL);
+#else
+			std::ifstream f("/proc/self/maps");
+			std::string ln;
+			std::getline(f, ln);
+			auto addrStr = ln.substr(0, ln.find("-"));
+
+			baseAddress = std::stoul(addrStr, nullptr, 16);
+#endif
+		}
+		return baseAddress;
+	}
+
+	std::add_pointer_t<void(void)> voidFunc;
 
 	std::uintptr_t drawText;
 #ifdef _WIN32
@@ -23,8 +44,8 @@ class game {
 	                           float, float, ...)>
 	    drawTextFunc;
 #else
-	std::add_pointer_t<int64_t(char *, int, float, float, float, float, float,
-	                           float, float, int)>
+	std::add_pointer_t<int64_t(char *, int, int, int, float, float, float, float,
+	                           float, float, float, void *)>
 	    drawTextFunc;
 #endif
 

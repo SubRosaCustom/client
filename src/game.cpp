@@ -2,7 +2,9 @@
 
 #include "structs.hpp"
 
-game::game(std::uintptr_t base) {
+game::game() {
+	auto base = getBaseAddress();
+	
 	drawText = base + WIN_LIN(0x6d930, 0x2c62c);
 	drawTextFunc = (decltype(drawTextFunc))(drawText);
 

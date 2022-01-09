@@ -13,34 +13,26 @@
 #include "tcpSocket.hpp"
 #include "utils.hpp"
 
-uintptr_t baseAddress;
-
 #ifdef _WIN32
-
-inline uintptr_t getBaseAddress() { return (uintptr_t)GetModuleHandle(NULL); }
-
 BOOL WINAPI DllMain(_In_ HINSTANCE hinstDll, _In_ DWORD fdwReason,
                     _In_opt_ LPVOID lpvReserved) {
 	if (fdwReason == DLL_PROCESS_ATTACH) {
 		if (!AllocConsole()) {
-			ERROR_AND_EXIT("Failed to allocate console. Error code: %i (%s)",
-			               GetLastError(),
-			               std::system_category().message(GetLastError()));
+			ERROR_AND_EXIT("Failed to allocate console.");
 			return false;
 		}
 
 		_iobuf* data;
 		const errno_t res = freopen_s(&data, "CONOUT$", "w", stdout);
 		if (res != 0) {
-			ERROR_AND_EXIT("Failed to open stdout filestream. Error code: %i (%s)",
-			               res, std::system_category().message(GetLastError()));
+			ERROR_AND_EXIT(
+			    fmt::format("Failed to open stdout filestream. Error code: %i (%s)",
+			                res, std::system_category().message(res)));
 			return false;
 		}
 
 		if (!SetConsoleTitleA("Sub Rosa: Custom Console")) {
-			ERROR_AND_EXIT("Failed to set console title. Error code: %i (%s)",
-			               GetLastError(),
-			               std::system_category().message(GetLastError()));
+			ERROR_AND_EXIT("Failed to set console title.");
 			return false;
 		}
 
@@ -49,34 +41,20 @@ BOOL WINAPI DllMain(_In_ HINSTANCE hinstDll, _In_ DWORD fdwReason,
 		if (int result = WSAStartup(MAKEWORD(2, 0), &wsaData) != 0) {
 			throw std::runtime_error("Failed to intalize WSA");
 		}
-
-		g_utils = std::make_unique<utils>(INFO);
-		g_game = std::make_unique<game>(getBaseAddress());
-		g_hooks = std::make_unique<hooks>();
-		g_hooks->install();
-	}
-	return TRUE;
-}
-
 #else
 
-inline uintptr_t getBaseAddress() {
-	if (!baseAddress) {
-		std::ifstream f("/proc/self/maps");
-		std::string ln;
-		std::getline(f, ln);
-		auto addrStr = ln.substr(0, ln.find("-"));
-
-		baseAddress = std::stoul(addrStr, nullptr, 16);
-	}
-	return baseAddress;
-}
-
 void __attribute__((constructor)) entry() {
-	g_utils = std::make_unique<utils>(INFO);
-	g_game = std::make_unique<game>(getBaseAddress());
-	g_hooks = std::make_unique<hooks>();
-	g_utils->log(DEBUG, "Everything done");
-}
-
 #endif
+		g_utils = std::make_unique<utils>(INFO);
+		g_game = std::make_unique<game>();
+		g_utils->log(INFO,
+		             fmt::format("Base address: {:#x}", g_game->getBaseAddress()));
+		g_hooks = std::make_unique<hooks>();
+		g_hooks->install();
+		g_utils->log(INFO, "Everything done");
+
+#ifdef _WIN32
+	}
+	return TRUE;
+#endif
+}
