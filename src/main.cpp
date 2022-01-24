@@ -15,6 +15,7 @@
 
 #include "game.hpp"
 #include "hooks.hpp"
+#include "settings.hpp"
 #include "structs.hpp"
 #include "tcpSocket.hpp"
 #include "utils.hpp"
@@ -178,6 +179,7 @@ void __attribute__((constructor)) entry() {
 		std::signal(SIGPIPE, SIG_IGN);
 
 		g_utils = std::make_unique<utils>(INFO);
+		g_settings = std::make_unique<settings>();
 		g_game = std::make_unique<game>();
 		g_utils->log(INFO,
 		             fmt::format("Base address: {:#x}", g_game->getBaseAddress()));
