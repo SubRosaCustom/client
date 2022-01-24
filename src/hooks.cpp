@@ -52,15 +52,38 @@ int64_t drawHud(int64_t arg1) {
 	return ret;
 }
 
+
 #ifdef _WIN32
 int64_t drawText(char *text, float x, float y, float scale, int params,
                  float red, float green, float blue, float alpha, ...)
 #else
-int64_t drawText(char *text, int params, float x, float y, float scale,
-                 float red, float green, float blue, float alpha, int c)
+int64_t drawText(char *text, int params, int a, int b, float x, float y,
+                 float scale, float red, float green, float blue, float alpha,
+                 void *c)
 #endif
 {
 	REMOVE_HOOK(drawText);
+
+	// Generating game..., 				0x14d167
+	// Cancel, 							0x2cace
+	// Generating..., 					0x14c063
+	// Generating level..., 			0x14d09e
+	// Generating game..., 				0x14d167
+
+	// [CHAT] 							0x5603b
+
+	int editedParams = params;
+	// g_utils->log(INFO, fmt::format("{} {:#x}, {:#x}", text,
+	//    RETURN_ADDRESS() - g_game->getBaseAddress(),
+	//    g_game->createNewspaperText -
+	//    g_game->getBaseAddress()));
+
+	// If it's not a newspaper, memo, street sign, add a shadow
+	if (RETURN_ADDRESS() != g_game->getBaseAddress() + 0x14916c &&
+	    RETURN_ADDRESS() != g_game->getBaseAddress() + 0x149b6b &&
+	    RETURN_ADDRESS() != g_game->getBaseAddress() + 0x149707)
+		editedParams |= TEXT_SHADOW;
+
 // never do shit before this, stack corruption then sex
 #ifdef _WIN32
 	std::string_view textStr = text;
@@ -70,12 +93,12 @@ int64_t drawText(char *text, int params, float x, float y, float scale,
 	if (argCount > 0) {
 		pushVarArgs(&alpha, static_cast<long long>(argCount));
 	}
-	auto ret = g_game->drawTextFunc(text, x, y, scale, params | TEXT_SHADOW, red,
-	                                green, blue, alpha);
+	auto ret = g_game->drawTextFunc(text, x, y, scale, editedParams, red, green,
+	                                blue, alpha);
 
 	if (argCount > 0) clearStack(static_cast<long long>(argCount));
 #else
-	auto ret = g_game->drawTextFunc(text, params | TEXT_SHADOW, x, y, scale, red,
+	auto ret = g_game->drawTextFunc(text, editedParams, a, b, x, y, scale, red,
 	                                green, blue, alpha, c);
 #endif
 	// printf("DrawText %s, %#x, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f,
@@ -116,6 +139,9 @@ int drawCreditsMenu() {
 	              0.75, 1);
 	api::drawText("noche", 200.f, 96.f, 16.f, TEXT_SHADOW, 1, 1, 1, 1);
 	api::drawText("AssBlaster", 200.f, 112.f, 16.f, TEXT_SHADOW, 1, 1, 1, 1);
+
+	api::drawText("CE Contributors", 200.f, 144.f, 16.f, TEXT_SHADOW, 0.75, 0.75, 0.75, 1);
+	api::drawText("checkraisefold", 200.f, 176.f, 16.f, TEXT_SHADOW, 1, 1, 1, 1);
 
 	return ret;
 }
