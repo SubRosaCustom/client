@@ -1,10 +1,15 @@
 #include "hooks.hpp"
 
+#include <cmath>
+#include <ctime>
 #include <iostream>
 #include <sstream>
 
 #include "api.hpp"
 #include "game.hpp"
+#include "imgui.h"
+#include "imgui_impl_opengl3.h"
+#include "imgui_impl_sdl.h"
 #include "structs.hpp"
 #include "tcpSocket.hpp"
 #include "utils.hpp"
@@ -20,10 +25,13 @@
 #include <unistd.h>
 #endif
 
-#include <cmath>
-#include <ctime>
+#include <assert.h>
 
+#include "console.hpp"
 #include "fmt/format.h"
+#include "gui.hpp"
+
+std::vector<gui *> activeGuiList;
 
 extern "C" void FASTCALL pushVarArgs(void *addr, long long count);
 extern "C" void FASTCALL clearStack(long long count);
@@ -37,6 +45,72 @@ extern "C" void FASTCALL clearStack(long long count);
 
 #define REMOVE_HOOK(name) \
 	subhook::ScopedHookRemove name##Remove(&g_hooks->name##Hook);
+
+int pollEvent(SDL_Event *event) {
+	REMOVE_HOOK(pollEvent)
+
+	const auto result = g_game->pollEventFunc(event);
+
+	if (event->type == SDL_WINDOWEVENT &&
+	    event->window.event == SDL_WINDOWEVENT_RESIZED) {
+		bool isAnyGuiActive = false;
+		for (auto &&gui : activeGuiList) {
+			gui->onResize(ImVec2(event->window.data1, event->window.data2));
+		}
+	}
+
+	ImGuiIO &io = ImGui::GetIO();
+	io.MouseDrawCursor = false;
+
+	bool isAnyGuiActive = false;
+	for (auto &&gui : activeGuiList) {
+		if (gui->isOpen) {
+			isAnyGuiActive = true;
+			io.MouseDrawCursor = true;
+		}
+	}
+
+	if (result && ImGui_ImplSDL2_ProcessEvent(event) && isAnyGuiActive)
+		event->type = 0;
+
+	for (auto &&gui : activeGuiList) {
+		gui->handleKeyPress(event);
+	}
+
+	return result;
+};
+
+void swapWindow(SDL_Window *window) {
+	REMOVE_HOOK(swapWindow);
+
+	[[maybe_unused]] static const auto once = [window]() noexcept {
+		assert(ImGui_ImplSDL2_InitForOpenGL(window, nullptr) &&
+		       "Unable to init ImGui, ImGui_ImplSDL2_InitForOpenGL");
+		assert(ImGui_ImplOpenGL3_Init() &&
+		       "Unable to init ImGui, ImGui_ImplOpenGL3_Init");
+
+		ImGuiIO &io = ImGui::GetIO();
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+		g_utils->log(INFO, "ImGui Initialized!");
+
+		return true;
+	}();
+
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplSDL2_NewFrame(window);
+
+	ImGui::NewFrame();
+
+	g_console->draw();
+
+	ImGui::EndFrame();
+	ImGui::Render();
+
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+	g_game->swapWindowFunc(window);
+};
 
 int64_t renderFrame(int64_t arg1, int64_t arg2, double *arg3) {
 	REMOVE_HOOK(renderFrame);
@@ -52,6 +126,12 @@ int64_t drawHud(int64_t arg1) {
 	return ret;
 }
 
+int createNewspaperText(int itemID, int textureID) {
+	REMOVE_HOOK(createNewspaperText);
+
+	auto ret = g_game->createNewspaperTextFunc(itemID, textureID);
+	return ret;
+}
 
 #ifdef _WIN32
 int64_t drawText(char *text, float x, float y, float scale, int params,
@@ -146,14 +226,44 @@ int drawCreditsMenu() {
 	return ret;
 }
 
+int unkTest(int a, int b, char c, float d, float e, float f, float g) {
+	REMOVE_HOOK(unkTest);
+	// g_utils->log(INFO, fmt::format("gets called {}, {}, {}, {}, {}, {}, {}", a,
+	// b, c, d, e, f, g));
+
+	return 0;
+}
+
+int64_t createStreetSignText(int32_t street, int32_t textureID) {
+	REMOVE_HOOK(createStreetSignText);
+
+	auto ret = g_game->createStreetSignTextFunc(street, textureID);
+	return ret;
+}
+
+hooks::hooks() {
+	int w, h;
+	SDL_GetWindowSize(0, &w, &h);
+
+	g_console = std::make_unique<console>(
+	    "Console", false, ImVec2(0, 0), ImVec2(h, w),
+	    ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar |
+	        ImGuiWindowFlags_NoResize);
+}
+
 void hooks::install() {
-	g_utils->log(INFO, "Installing hooks...");
-	
+	ImGui::CreateContext();
+
+	INSTALL(swapWindow);
+	INSTALL(pollEvent);
 	INSTALL(renderFrame);
 	INSTALL(drawHud);
 	INSTALL(drawText);
 	INSTALL(drawMainMenu);
 	INSTALL(drawCreditsMenu);
+	INSTALL(createNewspaperText);
+	INSTALL(createStreetSignText);
+	INSTALL(unkTest);
 
 	g_utils->log(INFO, "Hooks installed!");
 }
