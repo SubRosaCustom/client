@@ -1,6 +1,9 @@
 #pragma once
 
+#include <SDL2/SDL.h>
+
 #include <cstdint>
+#include <fstream>
 #include <memory>
 
 #include "structs.hpp"
@@ -13,9 +16,51 @@
 #define TEXT_SHADOW 0x20
 #define TEXT_FORMAT 0x40
 
+#ifdef _WIN32
+#include <Psapi.h>
+#include <Windows.h>
+#elif __linux__
+#include <fcntl.h>
+#include <link.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
+
+#include "structs.hpp"
+
 class game {
+ private:
+	std::uintptr_t baseAddress;
+
  public:
-	game(std::uintptr_t base);
+	game();
+	inline uintptr_t getBaseAddress() {
+		if (!baseAddress) {
+#if _WIN32
+			baseAddress = (uintptr_t)GetModuleHandle(NULL);
+#else
+			std::ifstream f("/proc/self/maps");
+			std::string ln;
+			std::getline(f, ln);
+			auto addrStr = ln.substr(0, ln.find("-"));
+
+			baseAddress = std::stoul(addrStr, nullptr, 16);
+#endif
+		}
+		return baseAddress;
+	}
+
+	ServerListEntry* serverListEntries;
+	int* amountOfServerListEntries;
+
+	std::uintptr_t swapWindow;
+	std::add_pointer_t<decltype(SDL_GL_SwapWindow)> swapWindowFunc;
+	
+	std::uintptr_t pollEvent;
+	std::add_pointer_t<decltype(SDL_PollEvent)> pollEventFunc;
+
+	std::add_pointer_t<void(void)> voidFunc;
 
 	std::uintptr_t drawText;
 #ifdef _WIN32
@@ -23,8 +68,8 @@ class game {
 	                           float, float, ...)>
 	    drawTextFunc;
 #else
-	std::add_pointer_t<int64_t(char *, int, float, float, float, float, float,
-	                           float, float, int)>
+	std::add_pointer_t<int64_t(char *, int, int, int, float, float, float, float,
+	                           float, float, float, void *)>
 	    drawTextFunc;
 #endif
 
@@ -45,6 +90,16 @@ class game {
 
 	std::uintptr_t createParticle;
 	std::add_pointer_t<int(float, int, Vector3 *, Vector3 *)> createParticleFunc;
+
+	std::uintptr_t createNewspaperText;
+	std::add_pointer_t<int(int, int)> createNewspaperTextFunc;
+
+	std::uintptr_t createStreetSignText;
+	std::add_pointer_t<int(int, int)> createStreetSignTextFunc;
+
+	std::uintptr_t unkTest;
+	std::add_pointer_t<int(int, int, char, float, float, float, float)>
+	    unkTestFunc;
 };
 
 inline std::unique_ptr<game> g_game;

@@ -12,9 +12,9 @@
 #include <string>
 #include <string_view>
 
+#include "fmt/chrono.h"
 #include "fmt/color.h"
 #include "fmt/core.h"
-#include "fmt/chrono.h"
 #include "fmt/format.h"
 
 #ifdef _WIN32
@@ -33,10 +33,6 @@ class utils {
 	int minLogLevel;
 
 	utils(LOG_LEVELS level) : minLogLevel(level){};
-
-	std::string_view getLogLevelColor(LOG_LEVELS level) {
-		fg(fmt::color::crimson);
-	}
 
 	void printLogPrefix(LOG_LEVELS level) {
 		switch (level) {
@@ -58,25 +54,15 @@ class utils {
 		}
 	}
 
-	template <typename... Args>
-	void log(LOG_LEVELS type, std::string_view text, Args... args) {
+	void log(LOG_LEVELS type, std::string text) {
 		if (minLogLevel <= (int)type) {
 			time_t timetoday;
-   			time (&timetoday);
+			time(&timetoday);
 			fmt::print(fg(fmt::color::gray), "[");
 			fmt::print("{:%Y-%m-%d %X} ", std::chrono::system_clock::now());
 			printLogPrefix(type);
 			fmt::print(fg(fmt::color::gray), "]");
-			fmt::print(" {}\n", text, args...);
-			// fmt::print(fg(fmt::color::crimson), "{}", LEVEL)
-			// fmt::print(fg(fmt::color::), "] {}", text, args...);
-			// fmt::vformat("{}", args);
-
-			// auto now = std::chrono::system_clock::now();
-			// auto in_time_t = std::chrono::system_clock::to_time_t(now);
-			// std::cout << "[\x1B[90m"
-			        //   << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d|%X ")
-			        //   << getLogPrefix(type) << "] \033[0m" << text << '\n';
+			fmt::print(" {}\n", text);
 		}
 	};
 };

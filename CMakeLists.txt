@@ -25,6 +25,7 @@ add_compile_definitions (
 set (THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
 
+find_package(Freetype REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(fmt REQUIRED)
@@ -33,11 +34,21 @@ add_library (client SHARED
 	../subhook/subhook.c
 	../subhook/subhook_unix.c
 	../subhook/subhook_x86.c
+	../imgui/imgui_draw.cpp
+	../imgui/imgui_demo.cpp
+	../imgui/imgui_tables.cpp
+	../imgui/imgui_widgets.cpp
+	../imgui/imgui.cpp
+	../imgui/misc/freetype/imgui_freetype.cpp
+	../imgui/backends/imgui_impl_opengl3.cpp
+	../imgui/backends/imgui_impl_sdl.cpp
 	src/tcpSocket.cpp
 	src/hooks.cpp
 	src/game.cpp
 	src/main.cpp
 	src/api.cpp
+	src/events.cpp
+	src/settings.cpp
 	src/drawText.asm
 )
 
@@ -50,7 +61,9 @@ endif()
 set_property (TARGET client PROPERTY CXX_STANDARD 20)
 
 target_include_directories(client PRIVATE ${SDL2_INCLUDE_DIRS})
-target_link_libraries(client PRIVATE SDL2 GL ${CMAKE_DL_LIBS} Threads::Threads stdc++fs fmt::fmt-header-only)
+target_link_libraries(client PRIVATE SDL2 GL ${CMAKE_DL_LIBS} Threads::Threads stdc++fs fmt::fmt-header-only Freetype::Freetype)
+include_directories (${CMAKE_SOURCE_DIR}/imgui)
+include_directories (${CMAKE_SOURCE_DIR}/imgui/backends)
 include_directories (${CMAKE_SOURCE_DIR}/subhook)
 include_directories (${CMAKE_SOURCE_DIR}/fmt/include)
 target_link_options(client PRIVATE LINKER:--no-undefined)
