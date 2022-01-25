@@ -18,9 +18,11 @@ class hooks {
 
 	subhook::Hook swapWindowHook;
 	subhook::Hook pollEventHook;
+	subhook::Hook mouseRelativeUpdateHook;
 	subhook::Hook renderFrameHook;
 	subhook::Hook drawHudHook;
 	subhook::Hook drawTextHook;
+	subhook::Hook drawOptionsMenuHook;
 	subhook::Hook createSoundHook;
 	subhook::Hook drawMainMenuHook;
 	subhook::Hook drawCreditsMenuHook;

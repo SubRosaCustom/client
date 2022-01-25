@@ -21,6 +21,14 @@ game::game() {
 
 	serverListEntries = (ServerListEntry*)(base + WIN_LIN(TODO, 0x1c784de0));
 	amountOfServerListEntries = (int*)(base + WIN_LIN(TODO, 0x0a8e2460));
+	mouse = (Mouse*)(base + WIN_LIN(TODO, 0x38cced60));
+	chatMessages = (ChatMessage*)(base + WIN_LIN(TODO, 0x5e15da60));
+	amountOfChatMessages = (int*)(base + WIN_LIN(TODO, 0x1057620));
+	numEventsNeedSync = (int*)(base + WIN_LIN(TODO, 0x1820cfe8));
+
+	mouseRelativeUpdate = base + WIN_LIN(TODO, 0x2ae9d);
+	mouseRelativeUpdateFunc =
+	    (decltype(mouseRelativeUpdateFunc))(mouseRelativeUpdate);
 
 	drawText = base + WIN_LIN(0x6d930, 0x2c62c);
 	drawTextFunc = (decltype(drawTextFunc))(drawText);
@@ -36,6 +44,9 @@ game::game() {
 
 	drawCreditsMenu = base + WIN_LIN(0xfcc90, 0x8d1ed);
 	drawCreditsMenuFunc = (decltype(drawCreditsMenuFunc))(drawCreditsMenu);
+	
+	drawOptionsMenu = base + WIN_LIN(TODO, 0xaf684);
+	drawOptionsMenuFunc = (decltype(drawOptionsMenuFunc))(drawOptionsMenu);
 
 	// win: fd300, lin: 13b85b join menu void(void)
 	// win: fc480, lin: 14f048 password menu void(void)
@@ -60,6 +71,15 @@ game::game() {
 	createStreetSignTextFunc =
 	    (decltype(createStreetSignTextFunc))(createStreetSignText);
 
-	unkTest = base + WIN_LIN(, 0x2f166);
+	chatAddMessage = base + WIN_LIN(TODO, 0x4ee95);
+	chatAddMessageFunc = (decltype(chatAddMessageFunc))(chatAddMessage);
+
+	drawMenuCheckbox = base + WIN_LIN(TODO, 0x26168);
+	drawMenuCheckboxFunc = (decltype(drawMenuCheckboxFunc))(drawMenuCheckbox);
+
+	drawMenuText = base + WIN_LIN(TODO, 0x2e21e);
+	drawMenuTextFunc = (decltype(drawMenuTextFunc))(drawMenuText);
+
+	unkTest = base + WIN_LIN(TODO, 0x2f166);
 	unkTestFunc = (decltype(unkTestFunc))(unkTest);
 }

@@ -1,6 +1,10 @@
 #pragma once
 
+#include <sstream>
+
 #include "gui.hpp"
+#include "memoryEditor.hpp"
+#include "utils.hpp"
 
 // Thanks to ImGui for this.
 // Demonstrate creating a simple console window, with scrolling, filtering,
@@ -24,11 +28,12 @@ struct AppConsole {
 
 		// "CLASSIFY" is here to provide the test case where "C"+[tab] completes to
 		// "CL" and display multiple matches.
-		Commands.push_back("HELP");
-		Commands.push_back("HISTORY");
-		Commands.push_back("CLEAR");
-		Commands.push_back("SERVERS");
-		Commands.push_back("CLASSIFY");
+		Commands.push_back("help");
+		Commands.push_back("history");
+		Commands.push_back("clear");
+		Commands.push_back("servers");
+		Commands.push_back("memedit");
+		Commands.push_back("classify");
 		AutoScroll = true;
 		ScrollToBottom = false;
 		ShowFilters = false;
@@ -247,28 +252,54 @@ struct AppConsole {
 			}
 		History.push_back(Strdup(command_line));
 
+		std::vector<std::string> params;
+		std::istringstream f(command_line);
+		std::string s;
+		while (std::getline(f, s, ' ')) {
+			params.push_back(s);
+		}
+
 		// Process command
-		if (Stricmp(command_line, "CLEAR") == 0) {
+		if (params[0] == "clear") {
 			ClearLog();
-		} else if (Stricmp(command_line, "HELP") == 0) {
+		} else if (params[0] == "help") {
 			AddLog("Press CTRL-F to filter.");
 			AddLog("Commands:");
 			for (int i = 0; i < Commands.Size; i++) {
-				if (Stricmp(Commands[i], "CLASSIFY")) AddLog("- %s", Commands[i]);
+				if (Stricmp(Commands[i], "classify")) AddLog("- %s", Commands[i]);
 			}
-		} else if (Stricmp(command_line, "HISTORY") == 0) {
+		} else if (params[0] == "history") {
 			int first = History.Size - 10;
 			for (int i = first > 0 ? first : 0; i < History.Size; i++)
 				AddLog("%3d: %s\n", i, History[i]);
-		} else if (Stricmp(command_line, "SERVERS") == 0) {
+		} else if (params[0] == "servers") {
 			for (size_t i = 0; i <= *g_game->amountOfServerListEntries; i++) {
 				auto entry = g_game->serverListEntries[i];
 
-                std::string full = fmt::format("Entry {}: {} v{}{:c}, {}, {}, {}/{}, {}", i, entry.ping, entry.versionMajor, entry.versionMinor, entry.networkVersion, entry.name, entry.numOfPlayers, entry.maxNumOfPlayers, entry.gameType);
+				std::string full =
+				    fmt::format("Entry {}: {} v{}{:c}, {}, {}, {}/{}, {}", i,
+				                entry.ping, entry.versionMajor, entry.versionMinor,
+				                entry.networkVersion, entry.name, entry.numOfPlayers,
+				                entry.maxNumOfPlayers, entry.gameType);
 
 				AddLog(full.c_str());
 			}
+		} else if (params[0] == "chat") {
+			g_game->chatAddMessageFunc(4, "god", -1, -1);
+		} else if (params[0] == "memedit") {
+			if (params.size() < 3) {
+				AddLog("[error] Invalid usage, usage: MEMEDIT <address> <size>");
+			} else {
+				try {
+					g_memoryEditor->memData =
+					    (void*)(g_game->getBaseAddress() + std::stoi(params[1], nullptr, 0));
+					g_memoryEditor->memSize = std::stoi(params[2], nullptr, 0);
 
+					if (!g_memoryEditor->isOpen) g_memoryEditor->isOpen = true;
+				} catch (const std::exception& e) {
+					AddLog(fmt::format("[error] Invalid parameter used, exception '{}'", e.what()).c_str());
+				}
+			}
 		} else {
 			AddLog("Unknown command: '%s'\n", command_line);
 		}
@@ -345,7 +376,8 @@ struct AppConsole {
 					// List matches
 					AddLog("Possible matches:\n");
 					for (int i = 0; i < candidates.Size; i++)
-						if (Stricmp(Commands[i], "CLASSIFY")) AddLog("- %s\n", candidates[i]);
+						if (Stricmp(Commands[i], "classify"))
+							AddLog("- %s\n", candidates[i]);
 				}
 
 				break;

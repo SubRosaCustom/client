@@ -5,6 +5,8 @@
 #include "imconfig.h"
 #include "imgui.h"
 
+#include <vector>
+
 typedef class gui;
 extern std::vector<gui *> activeGuiList;
 
