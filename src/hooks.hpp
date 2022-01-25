@@ -29,7 +29,7 @@ class hooks {
 	subhook::Hook createParticleHook;
 	subhook::Hook createNewspaperTextHook;
 	subhook::Hook createStreetSignTextHook;
-	subhook::Hook unkTestHook;
+	subhook::Hook renderPNGHook;
 };
 
 inline std::unique_ptr<hooks> g_hooks;

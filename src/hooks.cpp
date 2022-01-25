@@ -222,13 +222,6 @@ int64_t drawHud(int64_t arg1) {
 	return ret;
 }
 
-int createNewspaperText(int itemID, int textureID) {
-	REMOVE_HOOK(createNewspaperText);
-
-	auto ret = g_game->createNewspaperTextFunc(itemID, textureID);
-	return ret;
-}
-
 #ifdef _WIN32
 int64_t drawText(char *text, float x, float y, float scale, int params,
                  float red, float green, float blue, float alpha, ...)
@@ -348,19 +341,12 @@ int drawOptionsMenu() {
 	return ret;
 }
 
-int unkTest(int a, int b, char c, float d, float e, float f, float g) {
-	REMOVE_HOOK(unkTest);
+int renderPNG(int a, int b, char c, float d, float e, float f, float g) {
+	REMOVE_HOOK(renderPNG);
 	// g_utils->log(INFO, fmt::format("gets called {}, {}, {}, {}, {}, {}, {}", a,
 	// b, c, d, e, f, g));
 
 	return 0;
-}
-
-int64_t createStreetSignText(int32_t street, int32_t textureID) {
-	REMOVE_HOOK(createStreetSignText);
-
-	auto ret = g_game->createStreetSignTextFunc(street, textureID);
-	return ret;
 }
 
 hooks::hooks() {
@@ -391,9 +377,7 @@ void hooks::install() {
 	INSTALL(drawMainMenu);
 	INSTALL(drawCreditsMenu);
 	INSTALL(drawOptionsMenu);
-	INSTALL(createNewspaperText);
-	INSTALL(createStreetSignText);
-	// INSTALL(unkTest);
+	// INSTALL(renderPNG);
 
 	g_utils->log(INFO, "Hooks installed!");
 }

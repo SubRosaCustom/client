@@ -19,12 +19,12 @@ game::game() {
 	dlclose(libSDL);
 #endif
 
-	serverListEntries = (ServerListEntry*)(base + WIN_LIN(TODO, 0x1c784de0));
-	amountOfServerListEntries = (int*)(base + WIN_LIN(TODO, 0x0a8e2460));
-	mouse = (Mouse*)(base + WIN_LIN(TODO, 0x38cced60));
-	chatMessages = (ChatMessage*)(base + WIN_LIN(TODO, 0x5e15da60));
-	amountOfChatMessages = (int*)(base + WIN_LIN(TODO, 0x1057620));
-	numEventsNeedSync = (int*)(base + WIN_LIN(TODO, 0x1820cfe8));
+	serverListEntries = (ServerListEntry*)(base + WIN_LIN(0x2b0a7f58, 0x1c784de0));
+	amountOfServerListEntries = (int*)(base + WIN_LIN(0x2b0a7ee4, 0x0a8e2460));
+	mouse = (Mouse*)(base + WIN_LIN(0x43f7c6c0, 0x38cced60));
+	chatMessages = (ChatMessage*)(base + WIN_LIN(0x52e8f660, 0x5e15da60));
+	amountOfChatMessages = (int*)(base + WIN_LIN(0x52e98e60, 0x1057620));
+	numEventsNeedSync = (int*)(base + WIN_LIN(0x64d2dd08, 0x1820cfe8));
 
 	mouseRelativeUpdate = base + WIN_LIN(TODO, 0x2ae9d);
 	mouseRelativeUpdateFunc =
@@ -45,7 +45,7 @@ game::game() {
 	drawCreditsMenu = base + WIN_LIN(0xfcc90, 0x8d1ed);
 	drawCreditsMenuFunc = (decltype(drawCreditsMenuFunc))(drawCreditsMenu);
 	
-	drawOptionsMenu = base + WIN_LIN(TODO, 0xaf684);
+	drawOptionsMenu = base + WIN_LIN(0xfeb50, 0xaf684);
 	drawOptionsMenuFunc = (decltype(drawOptionsMenuFunc))(drawOptionsMenu);
 
 	// win: fd300, lin: 13b85b join menu void(void)
@@ -63,23 +63,15 @@ game::game() {
 	createParticle = base + WIN_LIN(0x5ee40, 0xd957e);
 	createParticleFunc = (decltype(createParticleFunc))(createParticle);
 
-	createNewspaperText = base + WIN_LIN(TODO, 0x1492c3);
-	createNewspaperTextFunc =
-	    (decltype(createNewspaperTextFunc))(createNewspaperText);
-
-	createStreetSignText = base + WIN_LIN(TODO, 0x149800);
-	createStreetSignTextFunc =
-	    (decltype(createStreetSignTextFunc))(createStreetSignText);
-
-	chatAddMessage = base + WIN_LIN(TODO, 0x4ee95);
+	chatAddMessage = base + WIN_LIN(0x588f0, 0x4ee95);
 	chatAddMessageFunc = (decltype(chatAddMessageFunc))(chatAddMessage);
 
-	drawMenuCheckbox = base + WIN_LIN(TODO, 0x26168);
+	drawMenuCheckbox = base + WIN_LIN(0x71910, 0x26168);
 	drawMenuCheckboxFunc = (decltype(drawMenuCheckboxFunc))(drawMenuCheckbox);
 
-	drawMenuText = base + WIN_LIN(TODO, 0x2e21e);
+	drawMenuText = base + WIN_LIN(0x71640, 0x2e21e);
 	drawMenuTextFunc = (decltype(drawMenuTextFunc))(drawMenuText);
 
-	unkTest = base + WIN_LIN(TODO, 0x2f166);
-	unkTestFunc = (decltype(unkTestFunc))(unkTest);
+	renderPNG = base + WIN_LIN(0x6d300, 0x2f166);
+	renderPNGFunc = (decltype(renderPNGFunc))(renderPNG);
 }
