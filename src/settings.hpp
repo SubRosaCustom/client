@@ -19,19 +19,22 @@ class settings {
  private:
 	std::unordered_map<std::string_view, std::any> vars{
 	    {"console_open", false},
+	    {"small_chat", false},
 	};
 
  public:
 	const bool init(const char *config_name = "options.txt");
+	const bool save(const char *config_name = "options.txt");
+	const bool load(const char *config_name = "options.txt");
 
 	template <typename T>
-	const T get_var(const char *idx) const {
+	T get_var(const char *idx) {
 		if (!vars.contains(idx)) throw std::runtime_error(fmt::format("Unknown setting '{}'", idx));
 		return std::any_cast<T>(vars.at(idx));
 	}
 
 	template <typename T>
-	bool set_var(const char *idx, const T val) const {
+	bool set_var(const char *idx, const T val) {
 		auto v = vars.at(idx);
 
 		auto &type = v.type();
