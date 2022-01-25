@@ -60,7 +60,7 @@ endif()
 
 set_property (TARGET client PROPERTY CXX_STANDARD 20)
 
-target_include_directories(client PRIVATE ${SDL2_INCLUDE_DIRS})
+target_include_directories(client PRIVATE ${SDL2_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS})
 target_link_libraries(client PRIVATE SDL2 GL ${CMAKE_DL_LIBS} Threads::Threads stdc++fs fmt::fmt-header-only Freetype::Freetype)
 include_directories (${CMAKE_SOURCE_DIR}/imgui)
 include_directories (${CMAKE_SOURCE_DIR}/imgui/backends)
