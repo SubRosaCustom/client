@@ -60,7 +60,7 @@ class game {
 
 	std::uintptr_t swapWindow;
 	std::add_pointer_t<decltype(SDL_GL_SwapWindow)> swapWindowFunc;
-	
+
 	std::uintptr_t pollEvent;
 	std::add_pointer_t<decltype(SDL_PollEvent)> pollEventFunc;
 
@@ -68,20 +68,20 @@ class game {
 
 	std::uintptr_t drawText;
 #ifdef _WIN32
-	std::add_pointer_t<int64_t(char *, float, float, float, int, float, float,
+	std::add_pointer_t<int64_t(char*, float, float, float, int, float, float,
 	                           float, float, ...)>
 	    drawTextFunc;
 #else
-	std::add_pointer_t<int64_t(char *, int, int, int, float, float, float, float,
-	                           float, float, float, void *)>
+	std::add_pointer_t<int64_t(char*, int, int, int, float, float, float, float,
+	                           float, float, float, void*)>
 	    drawTextFunc;
 #endif
 
 	std::uintptr_t mouseRelativeUpdate;
-	std::add_pointer_t<void(Mouse *)> mouseRelativeUpdateFunc;
+	std::add_pointer_t<void(Mouse*)> mouseRelativeUpdateFunc;
 
 	std::uintptr_t renderFrame;
-	std::add_pointer_t<int64_t(int64_t, int64_t, double *)> renderFrameFunc;
+	std::add_pointer_t<int64_t(int64_t, int64_t, double*)> renderFrameFunc;
 
 	std::uintptr_t drawHud;
 	std::add_pointer_t<int64_t(int64_t)> drawHudFunc;
@@ -91,34 +91,34 @@ class game {
 
 	std::uintptr_t drawCreditsMenu;
 	std::add_pointer_t<int(void)> drawCreditsMenuFunc;
-	
+
 	std::uintptr_t drawOptionsMenu;
 	std::add_pointer_t<int(void)> drawOptionsMenuFunc;
 
 	std::uintptr_t createSound;
-	std::add_pointer_t<int(float, float, int, Vector3 *)> createSoundFunc;
+	std::add_pointer_t<int(float, float, int, Vector3*)> createSoundFunc;
 
 	std::uintptr_t createParticle;
-	std::add_pointer_t<int(float, int, Vector3 *, Vector3 *)> createParticleFunc;
+	std::add_pointer_t<int(float, int, Vector3*, Vector3*)> createParticleFunc;
 
 	std::uintptr_t createNewspaperText;
 	std::add_pointer_t<int(int, int)> createNewspaperTextFunc;
 
 	std::uintptr_t createStreetSignText;
 	std::add_pointer_t<int(int, int)> createStreetSignTextFunc;
-	
+
 	std::uintptr_t chatAddMessage;
 	std::add_pointer_t<int(int, char*, int, int)> chatAddMessageFunc;
-	
+
 	std::uintptr_t drawMenuCheckbox;
 	std::add_pointer_t<int(char*, int*)> drawMenuCheckboxFunc;
 
 	std::uintptr_t drawMenuText;
 	std::add_pointer_t<void(char*)> drawMenuTextFunc;
 
-	std::uintptr_t unkTest;
+	std::uintptr_t renderPNG;
 	std::add_pointer_t<int(int, int, char, float, float, float, float)>
-	    unkTestFunc;
+	    renderPNGFunc;
 };
 
 inline std::unique_ptr<game> g_game;
