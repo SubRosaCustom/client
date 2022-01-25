@@ -53,7 +53,7 @@ struct Vector3 {
 };
 
 static constexpr int maxServerListEntries = 32;
-// at 0x6a8a76e8 in linux
+
 // 0x5c bytes
 struct ServerListEntry {
 	int versionMajor;
@@ -67,4 +67,29 @@ struct ServerListEntry {
 	int ping; // 4c
 	int gameType; // 50
 	PAD(0x5c - 0x50 - 4);
+};
+
+// 0x9c bytes
+struct Mouse {
+	// possibly bound x 
+	int unk0;
+	// possibly bound y
+	int unk1; // 4
+	int deltaX; // 8
+	int deltaY; // c
+	PAD(0x90 - 0xc - 4);
+	int isLeftMouseDown; // 90
+	int isRightMouseDown; // 94
+	int mouseInputs; // 9c
+};
+
+// 0x98 bytes
+struct ChatMessage {
+	int type;
+	int unused;
+	int timer;
+	int otherPlayerID;
+	int playerID;
+	int volume;
+	char message[128];
 };
