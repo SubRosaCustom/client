@@ -1,15 +1,22 @@
 #include "hooks.hpp"
 
+#include <assert.h>
+
 #include <cmath>
 #include <ctime>
 #include <iostream>
 #include <sstream>
 
 #include "api.hpp"
+#include "console.hpp"
+#include "fmt/format.h"
 #include "game.hpp"
+#include "gui.hpp"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl.h"
+#include "memoryEditor.hpp"
+#include "settings.hpp"
 #include "structs.hpp"
 #include "tcpSocket.hpp"
 #include "utils.hpp"
@@ -24,12 +31,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #endif
-
-#include <assert.h>
-
-#include "console.hpp"
-#include "fmt/format.h"
-#include "gui.hpp"
 
 std::vector<gui *> activeGuiList;
 
@@ -59,14 +60,11 @@ int pollEvent(SDL_Event *event) {
 		}
 	}
 
-	ImGuiIO &io = ImGui::GetIO();
-	io.MouseDrawCursor = false;
-
 	bool isAnyGuiActive = false;
 	for (auto &&gui : activeGuiList) {
 		if (gui->isOpen) {
 			isAnyGuiActive = true;
-			io.MouseDrawCursor = true;
+			break;
 		}
 	}
 
@@ -80,14 +78,20 @@ int pollEvent(SDL_Event *event) {
 	return result;
 };
 
+SDL_Window *sdlWindow = nullptr;
+
 void swapWindow(SDL_Window *window) {
 	REMOVE_HOOK(swapWindow);
+
+	sdlWindow = window;
 
 	[[maybe_unused]] static const auto once = [window]() noexcept {
 		assert(ImGui_ImplSDL2_InitForOpenGL(window, nullptr) &&
 		       "Unable to init ImGui, ImGui_ImplSDL2_InitForOpenGL");
 		assert(ImGui_ImplOpenGL3_Init() &&
 		       "Unable to init ImGui, ImGui_ImplOpenGL3_Init");
+
+		api::init();
 
 		ImGuiIO &io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -98,11 +102,76 @@ void swapWindow(SDL_Window *window) {
 	}();
 
 	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplSDL2_NewFrame(window);
+	ImGui_ImplSDL2_NewFrame();
 
 	ImGui::NewFrame();
 
-	g_console->draw();
+	auto isAnyGuiActive = false;
+	auto &io = ImGui::GetIO();
+	io.MouseDrawCursor = false;
+	for (auto &&gui : activeGuiList) {
+		gui->draw();
+		if (!isAnyGuiActive && gui->isOpen) {
+			io.MouseDrawCursor = true;
+			isAnyGuiActive = true;
+		}
+	}
+
+	// if more than 10 events have passed since last event or smth
+	if (*g_game->numEventsNeedSync > 10) {
+		ImGuiIO &io = ImGui::GetIO();
+		ImGuiWindowFlags window_flags =
+		    ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+		    ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
+		    ImGuiWindowFlags_NoNav;
+
+		const float PAD = 10.0f;
+		const ImGuiViewport *viewport = ImGui::GetMainViewport();
+		ImVec2 work_pos =
+		    viewport->WorkPos;  // Use work area to avoid menu-bar/task-bar, if any!
+		ImVec2 work_size = viewport->WorkSize;
+		ImVec2 window_pos, window_pos_pivot;
+		window_pos.x = work_pos.x + work_size.x - PAD;
+		window_pos.y = work_pos.y + PAD;
+		window_pos_pivot.x = 1.0f;
+		window_pos_pivot.y = 0.0f;
+		ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+		window_flags |= ImGuiWindowFlags_NoMove;
+
+		ImGui::SetNextWindowBgAlpha(0.5f);
+		if (ImGui::Begin("Server Connection", (bool *)true, window_flags)) {
+			ImGui::Text(fmt::format("Server hasn't responded\nfor {:.2f} seconds",
+			                        *g_game->numEventsNeedSync / 62.5)
+			                .c_str());
+		}
+		ImGui::End();
+	}
+
+	api::setDrawList(ImGui::GetBackgroundDrawList());
+
+	if (g_settings->get_var<bool>("small_chat")) {
+		float x = 10.f;
+		float y = 500.f;
+		auto innerPadding = 2.f;
+		float messageOffset = innerPadding * 3.f + 4;
+		for (size_t i = 0; i <= *g_game->amountOfChatMessages; i++) {
+			auto message = g_game->chatMessages[i];
+			if (message.timer > 0) {
+				auto gb = 1.f;
+				if (message.type == 6) gb = 0.f;
+				auto size = ImGui::CalcTextSize(message.message);
+
+				api::drawRectFilledImGui(
+				    ImVec2(x - innerPadding, y - innerPadding),
+				    ImVec2(size.x + innerPadding * 3.f, size.y + innerPadding * 3.f),
+				    ImColor(0.5f, 0.5f, 0.5f, message.timer / 200.f), 4.f,
+				    ImDrawFlags_RoundCornersAll);
+				api::drawTextImGui(message.message, x, y, 13.f, 0.f, 1.f, gb, gb,
+				                   message.timer / 200.f);
+				y = y + size.y + messageOffset;
+			}
+		}
+	}
 
 	ImGui::EndFrame();
 	ImGui::Render();
@@ -111,6 +180,33 @@ void swapWindow(SDL_Window *window) {
 
 	g_game->swapWindowFunc(window);
 };
+
+void mouseRelativeUpdate(Mouse *mouse) {
+	REMOVE_HOOK(mouseRelativeUpdate);
+
+	auto flags = SDL_GetWindowFlags(sdlWindow ? sdlWindow : 0);
+	if ((flags & SDL_WINDOW_SHOWN) && (flags & SDL_WINDOW_INPUT_FOCUS) &&
+	    (flags & SDL_WINDOW_MOUSE_FOCUS))
+		g_game->mouseRelativeUpdateFunc(mouse);
+	else {
+		g_game->mouse->deltaX = 0;
+		g_game->mouse->deltaY = 0;
+		g_game->mouse->isLeftMouseDown = 0;
+		g_game->mouse->isRightMouseDown = 0;
+		g_game->mouse->mouseInputs = 0;
+	}
+
+	for (auto &&gui : activeGuiList) {
+		if (gui->isOpen) {
+			g_game->mouse->deltaX = 0;
+			g_game->mouse->deltaY = 0;
+			g_game->mouse->isLeftMouseDown = 0;
+			g_game->mouse->isRightMouseDown = 0;
+			g_game->mouse->mouseInputs = 0;
+			break;
+		}
+	}
+}
 
 int64_t renderFrame(int64_t arg1, int64_t arg2, double *arg3) {
 	REMOVE_HOOK(renderFrame);
@@ -144,25 +240,24 @@ int64_t drawText(char *text, int params, int a, int b, float x, float y,
 {
 	REMOVE_HOOK(drawText);
 
-	// Generating game..., 				0x14d167
-	// Cancel, 							0x2cace
-	// Generating..., 					0x14c063
-	// Generating level..., 			0x14d09e
-	// Generating game..., 				0x14d167
-
-	// [CHAT] 							0x5603b
-
 	int editedParams = params;
 	// g_utils->log(INFO, fmt::format("{} {:#x}, {:#x}", text,
 	//    RETURN_ADDRESS() - g_game->getBaseAddress(),
 	//    g_game->createNewspaperText -
 	//    g_game->getBaseAddress()));
 
-	// If it's not a newspaper, memo, street sign, add a shadow
-	if (RETURN_ADDRESS() != g_game->getBaseAddress() + 0x14916c &&
-	    RETURN_ADDRESS() != g_game->getBaseAddress() + 0x149b6b &&
-	    RETURN_ADDRESS() != g_game->getBaseAddress() + 0x149707)
+	// If it's not a newspaper, memo, street sign, chat message add a shadow
+	if (RETURN_ADDRESS() != g_game->getBaseAddress() + WIN_LIN(TODO, 0x14916c) &&
+	    RETURN_ADDRESS() != g_game->getBaseAddress() + WIN_LIN(TODO, 0x149b6b) &&
+	    RETURN_ADDRESS() != g_game->getBaseAddress() + WIN_LIN(TODO, 0x5603b) &&
+	    RETURN_ADDRESS() != g_game->getBaseAddress() + WIN_LIN(TODO, 0x149707))
 		editedParams |= TEXT_SHADOW;
+
+	// dont render text if its small chat
+	if (g_settings->get_var<bool>("small_chat") &&
+	    RETURN_ADDRESS() == g_game->getBaseAddress() + WIN_LIN(TODO, 0xd90f3)) {
+		return 0;
+	}
 
 // never do shit before this, stack corruption then sex
 #ifdef _WIN32
@@ -220,8 +315,35 @@ int drawCreditsMenu() {
 	api::drawText("noche", 200.f, 96.f, 16.f, TEXT_SHADOW, 1, 1, 1, 1);
 	api::drawText("AssBlaster", 200.f, 112.f, 16.f, TEXT_SHADOW, 1, 1, 1, 1);
 
-	api::drawText("CE Contributors", 200.f, 144.f, 16.f, TEXT_SHADOW, 0.75, 0.75, 0.75, 1);
+	api::drawText("CE Contributors", 200.f, 144.f, 16.f, TEXT_SHADOW, 0.75, 0.75,
+	              0.75, 1);
 	api::drawText("checkraisefold", 200.f, 176.f, 16.f, TEXT_SHADOW, 1, 1, 1, 1);
+
+	return ret;
+}
+
+int drawOptionsMenu() {
+	REMOVE_HOOK(drawOptionsMenu);
+
+	auto ret = g_game->drawOptionsMenuFunc();
+	api::drawText("Custom Edition Settings", 230.f, 600.f, 16.f, TEXT_SHADOW, 1,
+	              1, 1, 1);
+
+	// *(float*)(g_game->getBaseAddress() + WIN_LIN(TODO, 0x6a8a76c0)) = 0; //
+	// item length
+	// *(float*)(g_game->getBaseAddress() + WIN_LIN(TODO, 0x6a8a76c4)) = 0; //
+	// item height
+	*(float *)(g_game->getBaseAddress() + WIN_LIN(TODO, 0x6a8a76b8)) =
+	    5.f;  // next item x offset from 0
+	*(float *)(g_game->getBaseAddress() + WIN_LIN(TODO, 0x6a8a76bc)) =
+	    350.f;  // next item y offset from 0
+
+	static int smallChatMessages = (int)g_settings->get_var<bool>("small_chat");
+	g_game->drawMenuTextFunc("Custom Edition Settings");
+	if (g_game->drawMenuCheckboxFunc("Small Chat Messages", &smallChatMessages)) {
+		g_settings->set_var("small_chat", (bool)smallChatMessages);
+		g_settings->save();
+	}
 
 	return ret;
 }
@@ -242,28 +364,36 @@ int64_t createStreetSignText(int32_t street, int32_t textureID) {
 }
 
 hooks::hooks() {
+	ImGui::CreateContext();
+
 	int w, h;
 	SDL_GetWindowSize(0, &w, &h);
+
+	g_settings->init();
 
 	g_console = std::make_unique<console>(
 	    "Console", false, ImVec2(0, 0), ImVec2(h, w),
 	    ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar |
 	        ImGuiWindowFlags_NoResize);
+
+	g_memoryEditor =
+	    std::make_unique<memoryEditor>("Memory Editor", false, ImVec2(500, 200),
+	                                   ImVec2(400, 300), ImGuiWindowFlags_None);
 }
 
 void hooks::install() {
-	ImGui::CreateContext();
-
 	INSTALL(swapWindow);
 	INSTALL(pollEvent);
+	INSTALL(mouseRelativeUpdate);
 	INSTALL(renderFrame);
 	INSTALL(drawHud);
 	INSTALL(drawText);
 	INSTALL(drawMainMenu);
 	INSTALL(drawCreditsMenu);
+	INSTALL(drawOptionsMenu);
 	INSTALL(createNewspaperText);
 	INSTALL(createStreetSignText);
-	INSTALL(unkTest);
+	// INSTALL(unkTest);
 
 	g_utils->log(INFO, "Hooks installed!");
 }
