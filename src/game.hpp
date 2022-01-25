@@ -53,6 +53,10 @@ class game {
 
 	ServerListEntry* serverListEntries;
 	int* amountOfServerListEntries;
+	Mouse* mouse;
+	ChatMessage* chatMessages;
+	int* amountOfChatMessages;
+	int* numEventsNeedSync;
 
 	std::uintptr_t swapWindow;
 	std::add_pointer_t<decltype(SDL_GL_SwapWindow)> swapWindowFunc;
@@ -73,6 +77,9 @@ class game {
 	    drawTextFunc;
 #endif
 
+	std::uintptr_t mouseRelativeUpdate;
+	std::add_pointer_t<void(Mouse *)> mouseRelativeUpdateFunc;
+
 	std::uintptr_t renderFrame;
 	std::add_pointer_t<int64_t(int64_t, int64_t, double *)> renderFrameFunc;
 
@@ -84,6 +91,9 @@ class game {
 
 	std::uintptr_t drawCreditsMenu;
 	std::add_pointer_t<int(void)> drawCreditsMenuFunc;
+	
+	std::uintptr_t drawOptionsMenu;
+	std::add_pointer_t<int(void)> drawOptionsMenuFunc;
 
 	std::uintptr_t createSound;
 	std::add_pointer_t<int(float, float, int, Vector3 *)> createSoundFunc;
@@ -96,6 +106,15 @@ class game {
 
 	std::uintptr_t createStreetSignText;
 	std::add_pointer_t<int(int, int)> createStreetSignTextFunc;
+	
+	std::uintptr_t chatAddMessage;
+	std::add_pointer_t<int(int, char*, int, int)> chatAddMessageFunc;
+	
+	std::uintptr_t drawMenuCheckbox;
+	std::add_pointer_t<int(char*, int*)> drawMenuCheckboxFunc;
+
+	std::uintptr_t drawMenuText;
+	std::add_pointer_t<void(char*)> drawMenuTextFunc;
 
 	std::uintptr_t unkTest;
 	std::add_pointer_t<int(int, int, char, float, float, float, float)>
