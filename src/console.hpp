@@ -291,13 +291,15 @@ struct AppConsole {
 				AddLog("[error] Invalid usage, usage: MEMEDIT <address> <size>");
 			} else {
 				try {
-					g_memoryEditor->memData =
-					    (void*)(g_game->getBaseAddress() + std::stoi(params[1], nullptr, 0));
+					g_memoryEditor->memData = (void*)(g_game->getBaseAddress() +
+					                                  std::stoi(params[1], nullptr, 0));
 					g_memoryEditor->memSize = std::stoi(params[2], nullptr, 0);
 
 					if (!g_memoryEditor->isOpen) g_memoryEditor->isOpen = true;
 				} catch (const std::exception& e) {
-					AddLog(fmt::format("[error] Invalid parameter used, exception '{}'", e.what()).c_str());
+					AddLog(fmt::format("[error] Invalid parameter used, exception '{}'",
+					                   e.what())
+					           .c_str());
 				}
 			}
 		} else {
@@ -425,8 +427,8 @@ class console : public gui {
 			if (this->isOpen) this->setFocus = true;
 		}
 		if (ImGui::IsKeyPressed(ImGuiKey_F) &&
-		        ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
-		    ImGui::IsKeyDown(ImGuiKey_RightCtrl)) {
+		    (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
+		     ImGui::IsKeyDown(ImGuiKey_RightCtrl))) {
 			con->ShowFilters = !con->ShowFilters;
 		}
 	};
