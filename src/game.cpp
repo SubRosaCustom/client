@@ -74,6 +74,12 @@ game::game() {
 	drawMenuText = base + WIN_LIN(0x71640, 0x2e21e);
 	drawMenuTextFunc = (decltype(drawMenuTextFunc))(drawMenuText);
 
+	drawMenuButton = base + WIN_LIN(TODO, 0x2602f);
+	drawMenuButtonFunc = (decltype(drawMenuButtonFunc))(drawMenuButton);
+
+	serverEventLoop = base + WIN_LIN(TODO, 0x14067f);
+	serverEventLoopFunc = (decltype(serverEventLoopFunc))(serverEventLoop);
+
 	renderPNG = base + WIN_LIN(0x6d300, 0x2f166);
 	renderPNGFunc = (decltype(renderPNGFunc))(renderPNG);
 }

@@ -115,6 +115,12 @@ class game {
 	std::uintptr_t drawMenuText;
 	std::add_pointer_t<void(char*)> drawMenuTextFunc;
 
+	std::uintptr_t drawMenuButton;
+	std::add_pointer_t<int(char*)> drawMenuButtonFunc;
+	
+	std::uintptr_t serverEventLoop;
+	std::add_pointer_t<void(void)> serverEventLoopFunc;
+
 	std::uintptr_t renderPNG;
 	std::add_pointer_t<int(int, int, char, float, float, float, float)>
 	    renderPNGFunc;

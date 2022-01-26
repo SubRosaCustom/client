@@ -13,7 +13,7 @@
 
 class hooks {
  public:
- 	hooks();
+	hooks();
 	void install();
 
 	subhook::Hook swapWindowHook;
@@ -22,13 +22,11 @@ class hooks {
 	subhook::Hook renderFrameHook;
 	subhook::Hook drawHudHook;
 	subhook::Hook drawTextHook;
-	subhook::Hook drawOptionsMenuHook;
-	subhook::Hook createSoundHook;
 	subhook::Hook drawMainMenuHook;
 	subhook::Hook drawCreditsMenuHook;
-	subhook::Hook createParticleHook;
-	subhook::Hook createNewspaperTextHook;
-	subhook::Hook createStreetSignTextHook;
+	subhook::Hook drawOptionsMenuHook;
+	subhook::Hook drawMenuButtonHook;
+	subhook::Hook serverEventLoopHook;
 	subhook::Hook renderPNGHook;
 };
 

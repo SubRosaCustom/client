@@ -15,11 +15,12 @@ linking)
 #include <stdio.h>
 #include <string.h>
 
-#include <iostream>
 #include <cerrno>
 #include <cstring>
+#include <iostream>
 
 #include "structs.hpp"  // for WIN_LIN
+#include "utils.hpp"    // for log
 
 #define BUFFERSIZE 1024
 
@@ -35,6 +36,8 @@ static inline void throwSafe() {
 }
 
 TCPConnection::TCPConnection(std::string_view ip, int port) {
+	valid = false;
+
 	addrinfo serverAddress;
 	memset(&serverAddress, 0, sizeof serverAddress);
 	serverAddress.ai_family = AF_INET;
@@ -50,13 +53,13 @@ TCPConnection::TCPConnection(std::string_view ip, int port) {
 	for (p = serverInfo; p != NULL; p = p->ai_next) {
 		if ((socketFD = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) ==
 		    -1) {
-			perror("socket failed trying next");
+			g_utils->log(DEBUG, "socket failed trying next");
 			continue;
 		}
 
 		if (connect(socketFD, p->ai_addr, p->ai_addrlen) == -1) {
 			WIN_LIN(closesocket, ::close)(socketFD);
-			perror("connect failed trying next");
+			g_utils->log(DEBUG, "connect failed trying next");
 			continue;
 		}
 
@@ -67,10 +70,17 @@ TCPConnection::TCPConnection(std::string_view ip, int port) {
 
 	freeaddrinfo(serverInfo);
 
+	// if (fcntl(socketFD, F_GETFL) & O_NONBLOCK)
+		// g_utils->log(DEBUG, "Socket is already non blocking...");
+	// else if (fcntl(socketFD, F_SETFL, fcntl(socketFD, F_GETFL) | O_NONBLOCK) < 0)
+		// throw std::runtime_error("Failed to set socket flags");
+
 	address = *((sockaddr_in*)p->ai_addr);
+	valid = true;
 }
 
 TCPConnection::~TCPConnection() {
+	valid = false;
 	if (socketFD != -1) close();
 }
 
@@ -103,6 +113,35 @@ int TCPConnection::recv(char* data, int bytesToRead) {
 	}
 
 	return bytesRead;
+}
+
+int TCPConnection::recvBlocking(char* data, int bytesToRead) {
+  /*
+  reads up to bytesToRead bytes from socket
+  returns number of bytes read
+  */
+
+  if (socketFD == -1)
+    throw std::runtime_error("Trying to recv from closed session");
+
+  int bytesRead = ::recv(socketFD, data, bytesToRead, 0);
+
+  if (bytesRead == 0) {
+    close();
+  }
+
+  while (bytesRead < bytesToRead) {
+    if (bytesRead == -1) {
+      if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        continue;
+      }
+      continue;
+    }
+
+    bytesRead += ::recv(socketFD, data + bytesRead, bytesToRead - bytesRead, 0);
+  }
+
+  return bytesRead;
 }
 
 int TCPConnection::send(std::string_view data) {
@@ -142,8 +181,12 @@ std::string_view TCPConnection::getAddressString() {
 TCPSocket::TCPSocket(const unsigned short port) {
 	// initalize our socket
 	socketFD = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
 	if (socketFD == -1) throw std::runtime_error("Failed to create socket");
+
+	// if (fcntl(socketFD, F_GETFL) & O_NONBLOCK)
+		// g_utils->log(DEBUG, "Socket is already non blocking...");
+	// else if (fcntl(socketFD, F_SETFL, fcntl(socketFD, F_GETFL) | O_NONBLOCK) < 0)
+		// throw std::runtime_error("Failed to set socket flags");
 
 	// configure our socket to ignore "port already in use error"
 	int yes = 1;

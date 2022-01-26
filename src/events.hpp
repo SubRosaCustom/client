@@ -1,6 +1,8 @@
 #include "api.hpp"
 #include "tcpSocket.hpp"
 
+#include <memory>
+
 // event header
 struct EventInfo {
 	int tick;
@@ -35,7 +37,7 @@ struct Event {
 
 class eventHandler {
  public:
-	eventHandler(TCPConnection con) : serverConnection(con) {};
+	eventHandler() {};
 	eventHandler(eventHandler &&) = default;
 	eventHandler(const eventHandler &) = default;
 	eventHandler &operator=(eventHandler &&) = default;
@@ -43,7 +45,8 @@ class eventHandler {
 	~eventHandler() {};
 
 	void processEvents();
- private:
 	std::vector<Event> events;
-    TCPConnection serverConnection;
+ private:
 };
+
+inline std::shared_ptr<eventHandler> g_eventHandler;

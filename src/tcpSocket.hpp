@@ -14,6 +14,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 typedef int SOCKET;
 #endif
@@ -24,16 +25,18 @@ typedef int SOCKET;
 
 class TCPConnection {
  public:
+ 	bool valid = false;
 	SOCKET socketFD;
 	sockaddr_in address;
 
 	TCPConnection(SOCKET sockfd_in, sockaddr_in address_in)
-	    : socketFD(sockfd_in), address(address_in){};
+	    : socketFD(sockfd_in), address(address_in), valid(true) {};
 	TCPConnection(std::string_view ip, int port);
 	~TCPConnection();
 
 	void close();
 	int recv(char* data, int bytesToRead);
+	int recvBlocking(char* data, int bytesToRead);
 	int send(std::string_view data);
 	std::string_view getAddressString();
 };

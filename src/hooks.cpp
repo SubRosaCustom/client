@@ -19,6 +19,7 @@
 
 #include "api.hpp"
 #include "console.hpp"
+#include "events.hpp"
 #include "fmt/format.h"
 #include "game.hpp"
 #include "gui.hpp"
@@ -26,6 +27,7 @@
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl.h"
 #include "memoryEditor.hpp"
+#include "serverConnection.hpp"
 #include "settings.hpp"
 #include "structs.hpp"
 #include "tcpSocket.hpp"
@@ -148,6 +150,21 @@ void swapWindow(SDL_Window *window) {
 
 	api::setDrawList(ImGui::GetBackgroundDrawList());
 
+	for (auto &&event : g_eventHandler->events) {
+		switch (event.info.type) {
+			case EVENT_DRAWTEXT:
+				DrawTextEvent data = event.data.drawText;
+				g_utils->log(INFO,
+				             fmt::format("barbara {}, {}, {}, {}, {}, {}, {}, {}, {}",
+				                         data.message, data.x, data.y, data.scale,
+				                         data.flags, data.r, data.g, data.b, data.a));
+
+				api::drawTextImGui(data.message, data.x, data.y, data.scale, data.flags,
+				                   data.r, data.g, data.b, data.a);
+
+				break;
+		}
+	}
 	if (g_settings->get_var<bool>("small_chat")) {
 		float x = 10.f;
 		float y = 500.f;
@@ -273,26 +290,14 @@ int64_t drawText(char *text, int params, int a, int b, float x, float y,
 	return ret;
 }
 
-void createSound(float arg1, float arg2, int arg3, Vector3 *arg4) {
-	REMOVE_HOOK(createSound);
-
-	g_game->createSoundFunc(arg1, arg2, arg3, arg4);
-}
-
-int createParticle(float arg1, int arg2, Vector3 *arg3, Vector3 *arg4) {
-	REMOVE_HOOK(createParticle);
-
-	auto ret = g_game->createParticleFunc(arg1, arg2, arg3, arg4);
-	return ret;
-}
-
 int drawMainMenu() {
 	REMOVE_HOOK(drawMainMenu);
 
 	auto ret = g_game->drawMainMenuFunc();
 
-	api::drawText("Custom Edition v0.0.1", 512.f, 192.f, 16.f,
-	              TEXT_SHADOW | TEXT_CENTER, 1, 1, 1, 1);
+	api::drawText(fmt::format("Custom Edition v{}.{}.{}", customVersion[0],
+	                          customVersion[1], customVersion[2]),
+	              512.f, 192.f, 16.f, TEXT_SHADOW | TEXT_CENTER, 1, 1, 1, 1);
 
 	return ret;
 }
@@ -348,6 +353,48 @@ int renderPNG(int a, int b, char c, float d, float e, float f, float g) {
 	return 0;
 }
 
+int drawMenuButton(char *text) {
+	REMOVE_HOOK(drawMenuButton);
+
+	auto ret = g_game->drawMenuButtonFunc(text);
+	if (ret) {
+		try {
+			std::string t(text);
+			if (t.starts_with("Server ")) {
+				t = t.substr(7, 3);
+
+				g_serverConnection->join(std::stoi(t, nullptr, 0));
+				if (g_serverConnection.get()) {
+					g_utils->log(INFO, "Custom socket connected!");
+				}
+			} else if (t.starts_with("Exit Gam")) {
+				g_utils->log(INFO, "Custom socket destroying...");
+				if (g_serverConnection.get() && g_serverConnection->valid) {
+					g_serverConnection->close();
+					g_serverConnection = nullptr;
+				}
+				// *g_game->numEventsNeedSync = 0;
+			}
+		} catch (const std::exception &e) {
+			g_utils->log(
+			    ERROR, fmt::format("Error while trying to process server button, {}",
+			                       e.what()));
+		}
+	}
+
+	return ret;
+}
+
+void serverEventLoop(void) {
+	REMOVE_HOOK(serverEventLoop);
+
+	if (g_serverConnection.get() && g_eventHandler.get()) {
+		g_eventHandler->processEvents();
+	}
+
+	g_game->serverEventLoopFunc();
+}
+
 hooks::hooks() {
 	ImGui::CreateContext();
 
@@ -364,6 +411,9 @@ hooks::hooks() {
 	g_memoryEditor =
 	    std::make_unique<memoryEditor>("Memory Editor", false, ImVec2(500, 200),
 	                                   ImVec2(400, 300), ImGuiWindowFlags_None);
+
+	g_serverConnection = std::make_unique<serverConnection>();
+	g_eventHandler = std::make_unique<eventHandler>();
 }
 
 void hooks::install() {
@@ -376,6 +426,8 @@ void hooks::install() {
 	INSTALL(drawMainMenu);
 	INSTALL(drawCreditsMenu);
 	INSTALL(drawOptionsMenu);
+	INSTALL(drawMenuButton);
+	INSTALL(serverEventLoop);
 	// INSTALL(renderPNG);
 
 	g_utils->log(INFO, "Hooks installed!");
