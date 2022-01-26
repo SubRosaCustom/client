@@ -1,5 +1,15 @@
 #pragma once
 
+#ifdef _WIN32
+#include <Windows.h>
+#elif __linux__
+#include <fcntl.h>
+#include <link.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
+
 #include <SDL2/SDL.h>
 
 #include <cstdint>
@@ -15,17 +25,6 @@
 #define TEXT_RIGHT 0x0
 #define TEXT_SHADOW 0x20
 #define TEXT_FORMAT 0x40
-
-#ifdef _WIN32
-#include <Psapi.h>
-#include <Windows.h>
-#elif __linux__
-#include <fcntl.h>
-#include <link.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#endif
 
 #include "structs.hpp"
 
@@ -115,6 +114,12 @@ class game {
 
 	std::uintptr_t drawMenuText;
 	std::add_pointer_t<void(char*)> drawMenuTextFunc;
+
+	std::uintptr_t drawMenuButton;
+	std::add_pointer_t<int(char*)> drawMenuButtonFunc;
+	
+	std::uintptr_t serverEventLoop;
+	std::add_pointer_t<void(void)> serverEventLoopFunc;
 
 	std::uintptr_t renderPNG;
 	std::add_pointer_t<int(int, int, char, float, float, float, float)>

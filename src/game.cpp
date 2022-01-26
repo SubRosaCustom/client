@@ -26,9 +26,11 @@ game::game() {
 	amountOfChatMessages = (int*)(base + WIN_LIN(0x52e98e60, 0x1057620));
 	numEventsNeedSync = (int*)(base + WIN_LIN(0x64d2dd08, 0x1820cfe8));
 
+#ifndef _WIN32
 	mouseRelativeUpdate = base + WIN_LIN(TODO, 0x2ae9d);
 	mouseRelativeUpdateFunc =
 	    (decltype(mouseRelativeUpdateFunc))(mouseRelativeUpdate);
+#endif
 
 	drawText = base + WIN_LIN(0x6d930, 0x2c62c);
 	drawTextFunc = (decltype(drawTextFunc))(drawText);
@@ -71,6 +73,12 @@ game::game() {
 
 	drawMenuText = base + WIN_LIN(0x71640, 0x2e21e);
 	drawMenuTextFunc = (decltype(drawMenuTextFunc))(drawMenuText);
+
+	drawMenuButton = base + WIN_LIN(TODO, 0x2602f);
+	drawMenuButtonFunc = (decltype(drawMenuButtonFunc))(drawMenuButton);
+
+	serverEventLoop = base + WIN_LIN(TODO, 0x14067f);
+	serverEventLoopFunc = (decltype(serverEventLoopFunc))(serverEventLoop);
 
 	renderPNG = base + WIN_LIN(0x6d300, 0x2f166);
 	renderPNGFunc = (decltype(renderPNGFunc))(renderPNG);

@@ -1,6 +1,6 @@
+#include <array>
 #include <csignal>
 #include <fstream>
-#include <array>
 #include <memory>
 #include <system_error>
 
@@ -9,9 +9,11 @@
 #include <Windows.h>
 #endif
 
+#ifndef _WIN32
 #include <cxxabi.h>
 #include <execinfo.h>
 #include <sys/mman.h>
+#endif
 
 #include "game.hpp"
 #include "hooks.hpp"
@@ -22,22 +24,28 @@
 
 static constexpr std::array handledSignals = {
     std::pair<int, std::string_view>{SIGABRT, "Abort signal from abort(3)"},
-    std::pair<int, std::string_view>{SIGBUS, "Bus error (bad memory access)"},
     std::pair<int, std::string_view>{SIGFPE, "Floating point exception"},
     std::pair<int, std::string_view>{SIGILL, "Illegal Instruction"},
+    std::pair<int, std::string_view>{SIGSEGV, "Invalid memory reference"},
+// doesn't exist on windows
+#ifndef _WIN32
+    std::pair<int, std::string_view>{SIGBUS, "Bus error (bad memory access)"},
     std::pair<int, std::string_view>{SIGIOT, "IOT trap. A synonym for SIGABRT"},
     std::pair<int, std::string_view>{SIGQUIT, "Quit from keyboard"},
-    std::pair<int, std::string_view>{SIGSEGV, "Invalid memory reference"},
     std::pair<int, std::string_view>{SIGSYS, "Bad argument to routine (SVr4)"},
     std::pair<int, std::string_view>{SIGTRAP, "Trace/breakpoint trap"},
-    std::pair<int, std::string_view>{SIGXCPU, "CPU time limit exceeded (4.2BSD)"},
-    std::pair<int, std::string_view>{SIGXFSZ, "File size limit exceeded (4.2BSD)"},
+    std::pair<int, std::string_view>{SIGXCPU,
+                                     "CPU time limit exceeded (4.2BSD)"},
+    std::pair<int, std::string_view>{SIGXFSZ,
+                                     "File size limit exceeded (4.2BSD)"},
+#endif
 };
 
 static void atexitHandler() {
 	g_utils->log(INFO, fmt::format("Exiting Sub Rosa, Goodbye!"));
 }
 
+#ifndef _WIN32
 static void signalHandler(int signal, siginfo_t* info, void* ucontext) {
 	std::cerr << std::flush;
 	std::cout << std::flush;
@@ -127,6 +135,7 @@ static void signalHandler(int signal, siginfo_t* info, void* ucontext) {
 	std::raise(signal);
 	_exit(EXIT_FAILURE);
 }
+#endif
 
 #ifdef _WIN32
 BOOL WINAPI DllMain(_In_ HINSTANCE hinstDll, _In_ DWORD fdwReason,
@@ -162,6 +171,7 @@ void __attribute__((constructor)) entry() {
 #endif
 		std::atexit(&atexitHandler);
 
+#ifndef _WIN32
 		struct sigaction sigact;
 
 		sigact.sa_sigaction = signalHandler;
@@ -177,6 +187,7 @@ void __attribute__((constructor)) entry() {
 			}
 		}
 		std::signal(SIGPIPE, SIG_IGN);
+#endif
 
 		g_utils = std::make_unique<utils>(INFO);
 		g_settings = std::make_unique<settings>();
