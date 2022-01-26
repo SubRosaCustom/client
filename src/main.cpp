@@ -40,6 +40,7 @@ static void atexitHandler() {
 	g_utils->log(INFO, fmt::format("Exiting Sub Rosa, Goodbye!"));
 }
 
+#ifndef _WIN32
 static void signalHandler(int signal, siginfo_t* info, void* ucontext) {
 	std::cerr << std::flush;
 	std::cout << std::flush;
@@ -129,6 +130,7 @@ static void signalHandler(int signal, siginfo_t* info, void* ucontext) {
 	std::raise(signal);
 	_exit(EXIT_FAILURE);
 }
+#endif
 
 #ifdef _WIN32
 BOOL WINAPI DllMain(_In_ HINSTANCE hinstDll, _In_ DWORD fdwReason,
@@ -164,6 +166,7 @@ void __attribute__((constructor)) entry() {
 #endif
 		std::atexit(&atexitHandler);
 
+#ifndef _WIN32
 		struct sigaction sigact;
 
 		sigact.sa_sigaction = signalHandler;
@@ -179,6 +182,7 @@ void __attribute__((constructor)) entry() {
 			}
 		}
 		std::signal(SIGPIPE, SIG_IGN);
+#endif
 
 		g_utils = std::make_unique<utils>(INFO);
 		g_settings = std::make_unique<settings>();
