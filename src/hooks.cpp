@@ -1,5 +1,15 @@
 #include "hooks.hpp"
 
+#ifdef _WIN32
+#include <Windows.h>
+#elif __linux__
+#include <fcntl.h>
+#include <link.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
+
 #include <assert.h>
 
 #include <cmath>
@@ -20,17 +30,6 @@
 #include "structs.hpp"
 #include "tcpSocket.hpp"
 #include "utils.hpp"
-
-#ifdef _WIN32
-#include <Psapi.h>
-#include <Windows.h>
-#elif __linux__
-#include <fcntl.h>
-#include <link.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#endif
 
 std::vector<gui *> activeGuiList;
 

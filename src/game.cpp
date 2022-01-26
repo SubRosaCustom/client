@@ -26,9 +26,11 @@ game::game() {
 	amountOfChatMessages = (int*)(base + WIN_LIN(0x52e98e60, 0x1057620));
 	numEventsNeedSync = (int*)(base + WIN_LIN(0x64d2dd08, 0x1820cfe8));
 
+#ifndef _WIN32
 	mouseRelativeUpdate = base + WIN_LIN(TODO, 0x2ae9d);
 	mouseRelativeUpdateFunc =
 	    (decltype(mouseRelativeUpdateFunc))(mouseRelativeUpdate);
+#endif
 
 	drawText = base + WIN_LIN(0x6d930, 0x2c62c);
 	drawTextFunc = (decltype(drawTextFunc))(drawText);

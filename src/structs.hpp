@@ -11,7 +11,8 @@
 	{                                                                 \
 		MessageBoxA(NULL,                                               \
 		            fmt::format("{}, Error no: {} ({})", error, errno,  \
-		                        std::system_category().message(errno)), \
+		                        std::system_category().message(errno)) \
+		                .c_str(), \
 		            "Client", MB_OK | MB_ICONERROR);                    \
 		exit(1);                                                        \
 	}
