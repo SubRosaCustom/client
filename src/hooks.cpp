@@ -131,14 +131,14 @@ void swapWindow(SDL_Window *window) {
 		    viewport->WorkPos;  // Use work area to avoid menu-bar/task-bar, if any!
 		ImVec2 work_size = viewport->WorkSize;
 		ImVec2 window_pos, window_pos_pivot;
-		window_pos.x = work_pos.x + work_size.x - PAD;
+		window_pos.x = work_pos.x + work_size.x - PAD - (work_size.x / 20);
 		window_pos.y = work_pos.y + PAD;
 		window_pos_pivot.x = 1.0f;
 		window_pos_pivot.y = 0.0f;
 		ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
 		window_flags |= ImGuiWindowFlags_NoMove;
 
-		ImGui::SetNextWindowBgAlpha(0.5f);
+		ImGui::SetNextWindowBgAlpha(0.6f);
 		if (ImGui::Begin("Server Connection", (bool *)true, window_flags)) {
 			ImGui::Text(fmt::format("Server hasn't responded\nfor {:.2f} seconds",
 			                        *g_game->numEventsNeedSync / 62.5)
@@ -235,9 +235,9 @@ int64_t drawText(char *text, int params, int a, int b, float x, float y,
 
 	int editedParams = params;
 	// g_utils->log(INFO, fmt::format("{} {:#x}, {:#x}", text,
-	//    RETURN_ADDRESS() - g_game->getBaseAddress(),
-	//    g_game->createNewspaperText -
-	//    g_game->getBaseAddress()));
+	//                                RETURN_ADDRESS() - g_game->getBaseAddress(),
+	//                                g_game->createNewspaperText -
+	//                                    g_game->getBaseAddress()));
 
 	// If it's not a newspaper, memo, street sign, chat message add a shadow
 	if (RETURN_ADDRESS() != g_game->getBaseAddress() + WIN_LIN(TODO, 0x14916c) &&
