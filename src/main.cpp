@@ -9,9 +9,11 @@
 #include <Windows.h>
 #endif
 
+#ifndef _WIN32
 #include <cxxabi.h>
 #include <execinfo.h>
 #include <sys/mman.h>
+#endif
 
 #include "game.hpp"
 #include "hooks.hpp"
@@ -22,16 +24,16 @@
 
 static constexpr std::array handledSignals = {
     std::pair<int, std::string_view>{SIGABRT, "Abort signal from abort(3)"},
-    std::pair<int, std::string_view>{SIGBUS, "Bus error (bad memory access)"},
+    WIN_LIN(,std::pair<int, std::string_view>{SIGBUS, "Bus error (bad memory access)"},)
     std::pair<int, std::string_view>{SIGFPE, "Floating point exception"},
     std::pair<int, std::string_view>{SIGILL, "Illegal Instruction"},
-    std::pair<int, std::string_view>{SIGIOT, "IOT trap. A synonym for SIGABRT"},
-    std::pair<int, std::string_view>{SIGQUIT, "Quit from keyboard"},
+    WIN_LIN(,std::pair<int, std::string_view>{SIGIOT, "IOT trap. A synonym for SIGABRT"},)
+    WIN_LIN(,std::pair<int, std::string_view>{SIGQUIT, "Quit from keyboard"},)
     std::pair<int, std::string_view>{SIGSEGV, "Invalid memory reference"},
-    std::pair<int, std::string_view>{SIGSYS, "Bad argument to routine (SVr4)"},
-    std::pair<int, std::string_view>{SIGTRAP, "Trace/breakpoint trap"},
-    std::pair<int, std::string_view>{SIGXCPU, "CPU time limit exceeded (4.2BSD)"},
-    std::pair<int, std::string_view>{SIGXFSZ, "File size limit exceeded (4.2BSD)"},
+    WIN_LIN(,std::pair<int, std::string_view>{SIGSYS, "Bad argument to routine (SVr4)"},)
+    WIN_LIN(,std::pair<int, std::string_view>{SIGTRAP, "Trace/breakpoint trap"},)
+    WIN_LIN(,std::pair<int, std::string_view>{SIGXCPU, "CPU time limit exceeded (4.2BSD)"},)
+    WIN_LIN(,std::pair<int, std::string_view>{SIGXFSZ, "File size limit exceeded (4.2BSD)"},)
 };
 
 static void atexitHandler() {
