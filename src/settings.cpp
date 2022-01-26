@@ -78,6 +78,8 @@ const bool settings::load(const char *config_name) {
 			vars[key] = value.c_str();
 		}
 	}
+
+	return true;
 }
 
 const bool settings::save(const char *config_name) {
@@ -102,11 +104,13 @@ const bool settings::save(const char *config_name) {
 	}
 	outConfigFile.flush();
 	outConfigFile.close();
+
+	return true;
 }
 
 const bool settings::init(const char *config_name) {
 	if (std::filesystem::exists(std::filesystem::path(config_name)))
-		load(config_name);
+		return load(config_name);
 	else
-		save(config_name);
+		return save(config_name);
 }
