@@ -1,5 +1,5 @@
 #include "api.hpp"
-#include "tcpSocket.hpp"
+#include "networking/tcpSocket.hpp"
 
 #include <memory>
 

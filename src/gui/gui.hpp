@@ -1,28 +1,35 @@
 #pragma once
 
 #include <string_view>
+#include <vector>
 
 #include "imconfig.h"
 #include "imgui.h"
 
-#include <vector>
-
 typedef class gui;
 extern std::vector<gui *> activeGuiList;
+
+typedef int GuiFlags;
+enum GuiFlags_ {
+	GuiFlags_None = 0,
+	GuiFlags_OpenOnStart = 1 << 0,
+	GuiFlags_DisablesMouse = 1 << 1,
+};
 
 class gui {
  public:
 	virtual void onInit(){};
 	explicit gui(std::string_view title = "Default GUI Title",
-	             bool openOnStart = true, ImVec2 startPos = ImVec2(300, 200),
+	             GuiFlags _guiFlags = GuiFlags_None,
+	             ImVec2 startPos = ImVec2(300, 200),
 	             ImVec2 startSize = ImVec2(400, 300),
 	             ImGuiWindowFlags flags = ImGuiWindowFlags_None)
 	    : title(title),
-	      isOpen(openOnStart),
+	      isOpen(_guiFlags & GuiFlags_OpenOnStart),
 	      pos(startPos),
 	      size(startSize),
-	      windowFlags(flags)
-	{
+	      windowFlags(flags),
+	      disableMouse(_guiFlags & GuiFlags_DisablesMouse) {
 		activeGuiList.push_back(this);
 		onInit();
 	};
@@ -37,8 +44,8 @@ class gui {
 	virtual void onResize(ImVec2 s) { size = s; }
 	virtual void handleKeyPress(SDL_Event *event) {}
 
-    virtual void preBegin() = 0;
-    virtual void postBegin() = 0;
+	virtual void preBegin() = 0;
+	virtual void postBegin() = 0;
 
 	void draw() {
 		if (isOpen) {
@@ -47,7 +54,7 @@ class gui {
 				ImGui::SetNextWindowFocus();
 			}
 
-            preBegin();
+			preBegin();
 			if (ImGui::Begin(title.data(), &isOpen, windowFlags)) {
 				ImGui::SetWindowSize(size, ImGuiCond_Once);
 				if (prevSize.x && prevSize.x != size.x && prevSize.y != size.y) {
@@ -57,12 +64,13 @@ class gui {
 				drawContents();
 				ImGui::End();
 			}
-            postBegin();
+			postBegin();
 		}
 
 		prevSize = size;
 	};
 
+	bool disableMouse;
 	bool isOpen;
 	bool setFocus;
 	std::string_view title;

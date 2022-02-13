@@ -1,7 +1,7 @@
 #pragma once
 
 #include <errno.h>
-#include "utils.hpp"
+#include "utils/utils.hpp"
 
 struct Vector3 {
 	float x, y, z;

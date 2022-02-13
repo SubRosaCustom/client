@@ -42,13 +42,14 @@ add_library (client SHARED
 	../imgui/misc/freetype/imgui_freetype.cpp
 	../imgui/backends/imgui_impl_opengl3.cpp
 	../imgui/backends/imgui_impl_sdl.cpp
-	src/tcpSocket.cpp
+	src/networking/tcpSocket.cpp
 	src/hooks.cpp
 	src/game.cpp
 	src/main.cpp
 	src/api.cpp
 	src/events.cpp
-	src/settings.cpp
+	src/utils/settings.cpp
+	src/networking/serverConnection.cpp
 	src/drawText.asm
 )
 

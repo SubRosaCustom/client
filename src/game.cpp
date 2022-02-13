@@ -1,7 +1,7 @@
 #include "game.hpp"
 
 #include "structs.hpp"
-#include "utils.hpp"
+#include "utils/utils.hpp"
 
 game::game() {
 	auto base = getBaseAddress();
@@ -16,6 +16,9 @@ game::game() {
 	swapWindow = uintptr_t(dlsym(libSDL, "SDL_GL_SwapWindow"));
 	swapWindowFunc = (decltype(swapWindowFunc))(swapWindow);
 
+	sdlDelay = uintptr_t(dlsym(libSDL, "SDL_Delay"));
+	sdlDelayFunc = (decltype(sdlDelayFunc))(sdlDelay);
+
 	dlclose(libSDL);
 #endif
 
@@ -26,6 +29,8 @@ game::game() {
 	amountOfChatMessages = (int*)(base + WIN_LIN(0x52e98e60, 0x1057620));
 	numEventsNeedSync = (int*)(base + WIN_LIN(0x64d2dd08, 0x1820cfe8));
 
+	// This function is inlined in Windows
+	// I LOVE MSVC
 #ifndef _WIN32
 	mouseRelativeUpdate = base + WIN_LIN(TODO, 0x2ae9d);
 	mouseRelativeUpdateFunc =

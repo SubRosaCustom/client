@@ -20,6 +20,7 @@ class settings {
 	std::unordered_map<std::string_view, std::any> vars{
 	    {"console_open", false},
 	    {"small_chat", false},
+	    {"exp_fps_uncap", false},
 	};
 
  public:

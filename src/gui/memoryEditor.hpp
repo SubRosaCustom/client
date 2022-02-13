@@ -19,7 +19,9 @@ class memoryEditor : public gui {
 
 	void drawContents() {
 		if (!mem) mem = std::make_unique<MemoryEditor>();
+		ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
 		mem->DrawContents(memData, memSize);
+		ImGui::PopFont();
 	}
 
     void* memData;

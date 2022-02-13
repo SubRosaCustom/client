@@ -19,8 +19,7 @@ linking)
 #include <cstring>
 #include <iostream>
 
-#include "structs.hpp"  // for WIN_LIN
-#include "utils.hpp"    // for log
+#include "../utils/utils.hpp"    // for log
 
 #define BUFFERSIZE 1024
 
@@ -70,10 +69,10 @@ TCPConnection::TCPConnection(std::string_view ip, int port) {
 
 	freeaddrinfo(serverInfo);
 
-	// if (fcntl(socketFD, F_GETFL) & O_NONBLOCK)
-		// g_utils->log(DEBUG, "Socket is already non blocking...");
-	// else if (fcntl(socketFD, F_SETFL, fcntl(socketFD, F_GETFL) | O_NONBLOCK) < 0)
-		// throw std::runtime_error("Failed to set socket flags");
+	if (fcntl(socketFD, F_GETFL) & O_NONBLOCK)
+		g_utils->log(DEBUG, "Socket is already non blocking...");
+	else if (fcntl(socketFD, F_SETFL, fcntl(socketFD, F_GETFL) | O_NONBLOCK) < 0)
+		throw std::runtime_error("Failed to set socket flags");
 
 	address = *((sockaddr_in*)p->ai_addr);
 	valid = true;
@@ -91,6 +90,58 @@ void TCPConnection::close() {
 	socketFD = -1;
 }
 
+inline void hexdump(void *pAddressIn, long  lSize)
+{
+ char szBuf[100];
+ long lIndent = 1;
+ long lOutLen, lIndex, lIndex2, lOutLen2;
+ long lRelPos;
+ struct { char *pData; unsigned long lSize; } buf;
+ unsigned char *pTmp,ucTmp;
+ unsigned char *pAddress = (unsigned char *)pAddressIn;
+
+   buf.pData   = (char *)pAddress;
+   buf.lSize   = lSize;
+
+   while (buf.lSize > 0)
+   {
+      pTmp     = (unsigned char *)buf.pData;
+      lOutLen  = (int)buf.lSize;
+      if (lOutLen > 16)
+          lOutLen = 16;
+
+      // create a 64-character formatted output line:
+      sprintf(szBuf, " >                            "
+                     "                      "
+                     "    %08lX", pTmp-pAddress);
+      lOutLen2 = lOutLen;
+
+      for(lIndex = 1+lIndent, lIndex2 = 53-15+lIndent, lRelPos = 0;
+          lOutLen2;
+          lOutLen2--, lIndex += 2, lIndex2++
+         )
+      {
+         ucTmp = *pTmp++;
+
+         sprintf(szBuf + lIndex, "%02X ", (unsigned short)ucTmp);
+         if(!isprint(ucTmp))  ucTmp = '.'; // nonprintable char
+         szBuf[lIndex2] = ucTmp;
+
+         if (!(++lRelPos & 3))     // extra blank after 4 bytes
+         {  lIndex++; szBuf[lIndex+2] = ' '; }
+      }
+
+      if (!(lRelPos & 3)) lIndex--;
+
+      szBuf[lIndex  ]   = '<';
+      szBuf[lIndex+1]   = ' ';
+
+      printf("%s\n", szBuf);
+
+      buf.pData   += lOutLen;
+      buf.lSize   -= lOutLen;
+   }
+}
 int TCPConnection::recv(char* data, int bytesToRead) {
 	/*
 	reads up to bytesToRead bytes from socket
@@ -101,6 +152,8 @@ int TCPConnection::recv(char* data, int bytesToRead) {
 		throw std::runtime_error("Trying to recv from closed session");
 
 	int bytesRead = ::recv(socketFD, data, bytesToRead, 0);
+	g_utils->log(ERROR, fmt::format("Read {}", bytesToRead));
+	hexdump((char*)std::string(data, bytesRead).c_str(), bytesRead);
 	if (bytesRead == -1) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
 			return 0;
@@ -180,13 +233,8 @@ std::string_view TCPConnection::getAddressString() {
 
 TCPSocket::TCPSocket(const unsigned short port) {
 	// initalize our socket
-	socketFD = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	socketFD = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, IPPROTO_TCP);
 	if (socketFD == -1) throw std::runtime_error("Failed to create socket");
-
-	// if (fcntl(socketFD, F_GETFL) & O_NONBLOCK)
-		// g_utils->log(DEBUG, "Socket is already non blocking...");
-	// else if (fcntl(socketFD, F_SETFL, fcntl(socketFD, F_GETFL) | O_NONBLOCK) < 0)
-		// throw std::runtime_error("Failed to set socket flags");
 
 	// configure our socket to ignore "port already in use error"
 	int yes = 1;

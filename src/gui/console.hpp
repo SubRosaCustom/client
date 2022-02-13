@@ -4,7 +4,7 @@
 
 #include "gui.hpp"
 #include "memoryEditor.hpp"
-#include "utils.hpp"
+#include "../utils/utils.hpp"
 
 // Thanks to ImGui for this.
 // Demonstrate creating a simple console window, with scrolling, filtering,
