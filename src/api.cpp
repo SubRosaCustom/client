@@ -12,7 +12,6 @@
 
 namespace api {
 ImDrawList* bgDrawList;
-void init() { bgDrawList = ImGui::GetBackgroundDrawList(); }
 void setDrawList(ImDrawList* n) { bgDrawList = n; }
 void drawText(std::string_view text, float x, float y, float scale, int params,
               float r, float g, float b, float a) {
@@ -26,11 +25,11 @@ void drawText(std::string_view text, float x, float y, float scale, int params,
 void drawTextImGui(std::string_view text, float x, float y, float scale,
                    int params, float r, float g, float b, float a) {
 	if (bgDrawList) {
-		ImGuiContext& ctx = *ImGui::GetCurrentContext();
+		auto ctx = ImGui::GetIO();
 
-		bgDrawList->AddText(ctx.Font, scale, ImVec2(x + 1, y + 1),
+		bgDrawList->AddText(ctx.FontDefault, scale, ImVec2(x + 1, y + 1),
 		                    ImColor(0.f, 0.f, 0.f, a), text.data());
-		bgDrawList->AddText(ctx.Font, scale, ImVec2(x, y), ImColor(r, g, b, a),
+		bgDrawList->AddText(ctx.FontDefault, scale, ImVec2(x, y), ImColor(r, g, b, a),
 		                    text.data());
 	}
 }

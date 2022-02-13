@@ -63,6 +63,9 @@ class game {
 	std::uintptr_t pollEvent;
 	std::add_pointer_t<decltype(SDL_PollEvent)> pollEventFunc;
 
+	std::uintptr_t sdlDelay;
+	std::add_pointer_t<decltype(SDL_Delay)> sdlDelayFunc;
+
 	std::add_pointer_t<void(void)> voidFunc;
 
 	std::uintptr_t drawText;

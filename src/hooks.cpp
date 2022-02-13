@@ -18,20 +18,22 @@
 #include <sstream>
 
 #include "api.hpp"
-#include "console.hpp"
 #include "events.hpp"
 #include "fmt/format.h"
 #include "game.hpp"
-#include "gui.hpp"
+#include "gui/chat.hpp"
+#include "gui/console.hpp"
+#include "gui/fontData.hpp"
+#include "gui/gui.hpp"
+#include "gui/memoryEditor.hpp"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl.h"
-#include "memoryEditor.hpp"
-#include "serverConnection.hpp"
-#include "settings.hpp"
+#include "networking/serverConnection.hpp"
+#include "networking/tcpSocket.hpp"
 #include "structs.hpp"
-#include "tcpSocket.hpp"
-#include "utils.hpp"
+#include "utils/settings.hpp"
+#include "utils/utils.hpp"
 
 std::vector<gui *> activeGuiList;
 
@@ -55,21 +57,20 @@ int pollEvent(SDL_Event *event) {
 
 	if (event->type == SDL_WINDOWEVENT &&
 	    event->window.event == SDL_WINDOWEVENT_RESIZED) {
-		bool isAnyGuiActive = false;
 		for (auto &&gui : activeGuiList) {
 			gui->onResize(ImVec2(event->window.data1, event->window.data2));
 		}
 	}
 
-	bool isAnyGuiActive = false;
+	bool shouldDisableMouse = false;
 	for (auto &&gui : activeGuiList) {
-		if (gui->isOpen) {
-			isAnyGuiActive = true;
+		if (gui->isOpen && gui->disableMouse) {
+			shouldDisableMouse = true;
 			break;
 		}
 	}
 
-	if (result && ImGui_ImplSDL2_ProcessEvent(event) && isAnyGuiActive)
+	if (result && ImGui_ImplSDL2_ProcessEvent(event) && shouldDisableMouse)
 		event->type = 0;
 
 	for (auto &&gui : activeGuiList) {
@@ -80,7 +81,6 @@ int pollEvent(SDL_Event *event) {
 };
 
 SDL_Window *sdlWindow = nullptr;
-
 void swapWindow(SDL_Window *window) {
 	REMOVE_HOOK(swapWindow);
 
@@ -91,8 +91,6 @@ void swapWindow(SDL_Window *window) {
 		       "Unable to init ImGui, ImGui_ImplSDL2_InitForOpenGL");
 		assert(ImGui_ImplOpenGL3_Init() &&
 		       "Unable to init ImGui, ImGui_ImplOpenGL3_Init");
-
-		api::init();
 
 		ImGuiIO &io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -109,10 +107,11 @@ void swapWindow(SDL_Window *window) {
 
 	auto isAnyGuiActive = false;
 	auto &io = ImGui::GetIO();
+	auto &style = ImGui::GetStyle();
 	io.MouseDrawCursor = false;
 	for (auto &&gui : activeGuiList) {
 		gui->draw();
-		if (!isAnyGuiActive && gui->isOpen) {
+		if (!isAnyGuiActive && gui->isOpen && gui->disableMouse) {
 			io.MouseDrawCursor = true;
 			isAnyGuiActive = true;
 		}
@@ -139,6 +138,7 @@ void swapWindow(SDL_Window *window) {
 		ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
 		window_flags |= ImGuiWindowFlags_NoMove;
 
+		style.Alpha = *g_game->numEventsNeedSync / 62.5f;
 		ImGui::SetNextWindowBgAlpha(0.6f);
 		if (ImGui::Begin("Server Connection", (bool *)true, window_flags)) {
 			ImGui::Text(fmt::format("Server hasn't responded\nfor {:.2f} seconds",
@@ -146,6 +146,7 @@ void swapWindow(SDL_Window *window) {
 			                .c_str());
 		}
 		ImGui::End();
+		style.Alpha = 1.f;
 	}
 
 	api::setDrawList(ImGui::GetBackgroundDrawList());
@@ -154,10 +155,10 @@ void swapWindow(SDL_Window *window) {
 		switch (event.info.type) {
 			case EVENT_DRAWTEXT:
 				DrawTextEvent data = event.data.drawText;
-				g_utils->log(INFO,
-				             fmt::format("barbara {}, {}, {}, {}, {}, {}, {}, {}, {}",
-				                         data.message, data.x, data.y, data.scale,
-				                         data.flags, data.r, data.g, data.b, data.a));
+				// g_utils->log(INFO,
+				//  fmt::format("barbara {}, {}, {}, {}, {}, {}, {}, {}, {}",
+				//  data.message, data.x, data.y, data.scale,
+				//  data.flags, data.r, data.g, data.b, data.a));
 
 				api::drawTextImGui(data.message, data.x, data.y, data.scale, data.flags,
 				                   data.r, data.g, data.b, data.a);
@@ -165,30 +166,7 @@ void swapWindow(SDL_Window *window) {
 				break;
 		}
 	}
-	if (g_settings->get_var<bool>("small_chat")) {
-		float x = 10.f;
-		float y = 500.f;
-		auto innerPadding = 2.f;
-		float messageOffset = innerPadding * 3.f + 4;
-		for (size_t i = 0; i <= *g_game->amountOfChatMessages; i++) {
-			auto message = g_game->chatMessages[i];
-			if (message.timer > 0) {
-				auto gb = 1.f;
-				if (message.type == 6) gb = 0.f;
-				auto size = ImGui::CalcTextSize(message.message);
-
-				api::drawRectFilledImGui(
-				    ImVec2(x - innerPadding, y - innerPadding),
-				    ImVec2(size.x + innerPadding * 3.f, size.y + innerPadding * 3.f),
-				    ImColor(0.5f, 0.5f, 0.5f, message.timer / 200.f), 4.f,
-				    ImDrawFlags_RoundCornersAll);
-				api::drawTextImGui(message.message, x, y, 13.f, 0.f, 1.f, gb, gb,
-				                   message.timer / 200.f);
-				y = y + size.y + messageOffset;
-			}
-		}
-	}
-
+	
 	ImGui::EndFrame();
 	ImGui::Render();
 
@@ -213,7 +191,7 @@ void mouseRelativeUpdate(Mouse *mouse) {
 	}
 
 	for (auto &&gui : activeGuiList) {
-		if (gui->isOpen) {
+		if (gui->isOpen && gui->disableMouse) {
 			g_game->mouse->deltaX = 0;
 			g_game->mouse->deltaY = 0;
 			g_game->mouse->isLeftMouseDown = 0;
@@ -262,7 +240,7 @@ int64_t drawText(char *text, int params, int a, int b, float x, float y,
 	    RETURN_ADDRESS() != g_game->getBaseAddress() + WIN_LIN(TODO, 0x149707))
 		editedParams |= TEXT_SHADOW;
 
-	// dont render text if its small chat
+	// dont render chat message text if small chat is enabled
 	if (g_settings->get_var<bool>("small_chat") &&
 	    RETURN_ADDRESS() == g_game->getBaseAddress() + WIN_LIN(TODO, 0xd90f3)) {
 		return 0;
@@ -336,9 +314,14 @@ int drawOptionsMenu() {
 	    350.f;  // next item y offset from 0
 
 	static int smallChatMessages = (int)g_settings->get_var<bool>("small_chat");
+	static int expFPSUncap = (int)g_settings->get_var<bool>("exp_fps_uncap");
 	g_game->drawMenuTextFunc("Custom Edition Settings");
 	if (g_game->drawMenuCheckboxFunc("Small Chat Messages", &smallChatMessages)) {
 		g_settings->set_var("small_chat", (bool)smallChatMessages);
+		g_settings->save();
+	}
+	if (g_game->drawMenuCheckboxFunc("FPS Uncap (Experimental!)", &expFPSUncap)) {
+		g_settings->set_var("exp_fps_uncap", (bool)expFPSUncap);
 		g_settings->save();
 	}
 
@@ -397,6 +380,43 @@ void serverEventLoop(void) {
 
 hooks::hooks() {
 	ImGui::CreateContext();
+	auto &io = ImGui::GetIO();
+
+	// font setup
+	{
+		io.Fonts->ClearFonts();
+
+		ImFontConfig font_cfg = ImFontConfig();
+		font_cfg.OversampleH = font_cfg.OversampleV = 2;
+		font_cfg.PixelSnapH = false;
+		if (font_cfg.SizePixels <= 0.0f) font_cfg.SizePixels = 26.0f * 1.0f;
+
+		font_cfg.EllipsisChar = (ImWchar)0x0085;
+		font_cfg.GlyphOffset.y =
+		    1.0f *
+		    std::floor(font_cfg.SizePixels / 26.0f);  // Add +1 offset per 14 units
+
+		static const ImWchar ranges[] = {
+		    0x0020,
+		    0x00FF,  // Basic Latin + Latin Supplement
+		    0,
+		};
+		font_cfg.GlyphRanges = ranges;
+		const ImWchar *glyph_ranges = font_cfg.GlyphRanges;
+
+		io.Fonts->AddFontDefault();
+		std::strcpy(font_cfg.Name, fmt::format("OpenSans-Regular.ttf, {}px",
+		                                       (int)font_cfg.SizePixels)
+		                               .c_str());
+		io.FontDefault = io.Fonts->AddFontFromMemoryCompressedBase85TTF(
+		    rockwell_compressed_data_base85, font_cfg.SizePixels, &font_cfg,
+		    glyph_ranges);
+		io.FontDefault->Scale = 0.7f;
+	};
+	// theme setup
+	{
+
+	};
 
 	int w, h;
 	SDL_GetWindowSize(0, &w, &h);
@@ -404,21 +424,31 @@ hooks::hooks() {
 	g_settings->init();
 
 	g_console = std::make_unique<console>(
-	    "Console", false, ImVec2(0, 0), ImVec2(h, w),
+	    "Console", GuiFlags_DisablesMouse, ImVec2(0, 0), ImVec2(h, w),
 	    ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar |
 	        ImGuiWindowFlags_NoResize);
 
 	g_memoryEditor =
-	    std::make_unique<memoryEditor>("Memory Editor", false, ImVec2(500, 200),
+	    std::make_unique<memoryEditor>("Memory Editor", GuiFlags_DisablesMouse, ImVec2(500, 200),
+	                                   ImVec2(400, 300), ImGuiWindowFlags_None);
+	g_chatWindow =
+	    std::make_unique<chatWindow>("Chat Window", GuiFlags_None | GuiFlags_OpenOnStart, ImVec2(500, 200),
 	                                   ImVec2(400, 300), ImGuiWindowFlags_None);
 
 	g_serverConnection = std::make_unique<serverConnection>();
 	g_eventHandler = std::make_unique<eventHandler>();
 }
 
+void sdlDelay(Uint32 a) {
+	REMOVE_HOOK(sdlDelay);
+
+	if (!g_settings->get_var<bool>("exp_fps_uncap")) g_game->sdlDelayFunc(a);
+}
+
 void hooks::install() {
 	INSTALL(swapWindow);
 	INSTALL(pollEvent);
+	INSTALL(sdlDelay);
 	INSTALL(mouseRelativeUpdate);
 	INSTALL(renderFrame);
 	INSTALL(drawHud);

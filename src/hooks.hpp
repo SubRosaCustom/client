@@ -18,6 +18,7 @@ class hooks {
 
 	subhook::Hook swapWindowHook;
 	subhook::Hook pollEventHook;
+	subhook::Hook sdlDelayHook;
 	subhook::Hook mouseRelativeUpdateHook;
 	subhook::Hook renderFrameHook;
 	subhook::Hook drawHudHook;

@@ -15,12 +15,13 @@
 #include <sys/mman.h>
 #endif
 
+#define IMGUI_USER_CONFIG "gui/imconfig.h"
 #include "game.hpp"
 #include "hooks.hpp"
-#include "settings.hpp"
+#include "utils/settings.hpp"
 #include "structs.hpp"
-#include "tcpSocket.hpp"
-#include "utils.hpp"
+#include "networking/tcpSocket.hpp"
+#include "utils/utils.hpp"
 
 static constexpr std::array handledSignals = {
     std::pair<int, std::string_view>{SIGABRT, "Abort signal from abort(3)"},

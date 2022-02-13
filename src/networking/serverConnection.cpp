@@ -17,7 +17,7 @@ bool serverConnection::handshake() const {
 	if (auto amountRead = connection->recv((char *)&data, sizeof(data))) {
 		std::string str(data, amountRead);
         g_utils->log(INFO, fmt::format("hnad: {}", str));
-		if (!str.starts_with("Welcome Moon and Star...") &&
+		if (!str.starts_with("Welcome Moon and Star...") ||
 		    !str.ends_with("Where Destiny is Made.")) {
 			throw std::runtime_error(fmt::format("Handshake recv failed, {}", str));
 		}

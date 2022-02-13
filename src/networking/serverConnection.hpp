@@ -2,10 +2,10 @@
 
 #include <memory>
 
-#include "game.hpp"
-#include "structs.hpp"
+#include "../game.hpp"
+#include "../structs.hpp"
 #include "tcpSocket.hpp"
-#include "utils.hpp"
+#include "../utils/utils.hpp"
 
 class serverConnection {
  public:
