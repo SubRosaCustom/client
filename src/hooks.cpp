@@ -40,12 +40,13 @@ std::vector<gui *> activeGuiList;
 extern "C" void FASTCALL pushVarArgs(void *addr, long long count);
 extern "C" void FASTCALL clearStack(long long count);
 
-#define INSTALL(name)                                                    \
-	if (!name##Hook.Install((void *)g_game->name##Func, (void *)::name,    \
-	                        subhook::HookFlags::HookFlag64BitOffset)) {    \
-		ERROR_AND_EXIT(fmt::format("Hook {}Hook failed to install", #name)); \
-	}                                                                      \
-	g_utils->log(DEBUG, #name " hooked!")
+#define INSTALL(name)                                                     \
+	if (!name##Hook.Install((void *)g_game->name##Func, (void *)::name,     \
+	                        subhook::HookFlags::HookFlag64BitOffset)) {     \
+		ERROR_AND_EXIT(                                                       \
+		    spdlog::fmt_lib::format("Hook {}Hook failed to install", #name)); \
+	}                                                                       \
+	spdlog::debug(#name " hooked!");
 
 #define REMOVE_HOOK(name) \
 	subhook::ScopedHookRemove name##Remove(&g_hooks->name##Hook);
@@ -95,7 +96,7 @@ void swapWindow(SDL_Window *window) {
 		ImGuiIO &io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-		g_utils->log(INFO, "ImGui Initialized!");
+		spdlog::info("ImGui Initialized!");
 
 		return true;
 	}();
@@ -141,9 +142,10 @@ void swapWindow(SDL_Window *window) {
 		style.Alpha = *g_game->numEventsNeedSync / 62.5f;
 		ImGui::SetNextWindowBgAlpha(0.6f);
 		if (ImGui::Begin("Server Connection", (bool *)true, window_flags)) {
-			ImGui::Text(fmt::format("Server hasn't responded\nfor {:.2f} seconds",
-			                        *g_game->numEventsNeedSync / 62.5)
-			                .c_str());
+			ImGui::Text(
+			    spdlog::fmt_lib::format("Server hasn't responded\nfor {:.2f} seconds",
+			                            *g_game->numEventsNeedSync / 62.5)
+			        .c_str());
 		}
 		ImGui::End();
 		style.Alpha = 1.f;
@@ -155,10 +157,10 @@ void swapWindow(SDL_Window *window) {
 		switch (event.info.type) {
 			case EVENT_DRAWTEXT:
 				DrawTextEvent data = event.data.drawText;
-				// g_utils->log(INFO,
-				//  fmt::format("barbara {}, {}, {}, {}, {}, {}, {}, {}, {}",
+				// spdlog::info(
+				//  "barbara {}, {}, {}, {}, {}, {}, {}, {}, {}",
 				//  data.message, data.x, data.y, data.scale,
-				//  data.flags, data.r, data.g, data.b, data.a));
+				//  data.flags, data.r, data.g, data.b, data.a);
 
 				api::drawTextImGui(data.message, data.x, data.y, data.scale, data.flags,
 				                   data.r, data.g, data.b, data.a);
@@ -166,7 +168,7 @@ void swapWindow(SDL_Window *window) {
 				break;
 		}
 	}
-	
+
 	ImGui::EndFrame();
 	ImGui::Render();
 
@@ -228,10 +230,9 @@ int64_t drawText(char *text, int params, int a, int b, float x, float y,
 	REMOVE_HOOK(drawText);
 
 	int editedParams = params;
-	// g_utils->log(INFO, fmt::format("{} {:#x}, {:#x}", text,
-	//                                RETURN_ADDRESS() - g_game->getBaseAddress(),
-	//                                g_game->createNewspaperText -
-	//                                    g_game->getBaseAddress()));
+	// spdlog::info("{} {:#x}, {:#x}", text,
+	//  RETURN_ADDRESS() - g_game->getBaseAddress(),
+	//  g_game->createNewspaperText - g_game->getBaseAddress());
 
 	// If it's not a newspaper, memo, street sign, chat message add a shadow
 	if (RETURN_ADDRESS() != g_game->getBaseAddress() + WIN_LIN(TODO, 0x14916c) &&
@@ -273,9 +274,10 @@ int drawMainMenu() {
 
 	auto ret = g_game->drawMainMenuFunc();
 
-	api::drawText(fmt::format("Custom Edition v{}.{}.{}", customVersion[0],
-	                          customVersion[1], customVersion[2]),
-	              512.f, 192.f, 16.f, TEXT_SHADOW | TEXT_CENTER, 1, 1, 1, 1);
+	api::drawText(
+	    spdlog::fmt_lib::format("Custom Edition v{}.{}.{}", customVersion[0],
+	                            customVersion[1], customVersion[2]),
+	    512.f, 192.f, 16.f, TEXT_SHADOW | TEXT_CENTER, 1, 1, 1, 1);
 
 	return ret;
 }
@@ -315,12 +317,14 @@ int drawOptionsMenu() {
 
 	static int smallChatMessages = (int)g_settings->get_var<bool>("small_chat");
 	static int expFPSUncap = (int)g_settings->get_var<bool>("exp_fps_uncap");
-	g_game->drawMenuTextFunc("Custom Edition Settings");
-	if (g_game->drawMenuCheckboxFunc("Small Chat Messages", &smallChatMessages)) {
+	g_game->drawMenuTextFunc((char *)"Custom Edition Settings");
+	if (g_game->drawMenuCheckboxFunc((char *)"Small Chat Messages",
+	                                 &smallChatMessages)) {
 		g_settings->set_var("small_chat", (bool)smallChatMessages);
 		g_settings->save();
 	}
-	if (g_game->drawMenuCheckboxFunc("FPS Uncap (Experimental!)", &expFPSUncap)) {
+	if (g_game->drawMenuCheckboxFunc((char *)"FPS Uncap (Experimental!)",
+	                                 &expFPSUncap)) {
 		g_settings->set_var("exp_fps_uncap", (bool)expFPSUncap);
 		g_settings->save();
 	}
@@ -330,7 +334,7 @@ int drawOptionsMenu() {
 
 int renderPNG(int a, int b, char c, float d, float e, float f, float g) {
 	REMOVE_HOOK(renderPNG);
-	// g_utils->log(INFO, fmt::format("gets called {}, {}, {}, {}, {}, {}, {}", a,
+	// spdlog::info("gets called {}, {}, {}, {}, {}, {}, {}", a,
 	// b, c, d, e, f, g));
 
 	return 0;
@@ -348,10 +352,10 @@ int drawMenuButton(char *text) {
 
 				g_serverConnection->join(std::stoi(t, nullptr, 0));
 				if (g_serverConnection.get()) {
-					g_utils->log(INFO, "Custom socket connected!");
+					spdlog::info("Custom socket connected!");
 				}
 			} else if (t.starts_with("Exit Gam")) {
-				g_utils->log(INFO, "Custom socket destroying...");
+				spdlog::info("Custom socket destroying...");
 				if (g_serverConnection.get() && g_serverConnection->valid) {
 					g_serverConnection->close();
 					g_serverConnection = nullptr;
@@ -359,9 +363,8 @@ int drawMenuButton(char *text) {
 				// *g_game->numEventsNeedSync = 0;
 			}
 		} catch (const std::exception &e) {
-			g_utils->log(
-			    ERROR, fmt::format("Error while trying to process server button, {}",
-			                       e.what()));
+			spdlog::error("Error while trying to process server button, {}",
+			              e.what());
 		}
 	}
 
@@ -376,6 +379,11 @@ void serverEventLoop(void) {
 	}
 
 	g_game->serverEventLoopFunc();
+}
+
+int testHook(void) {
+	REMOVE_HOOK(testHook);
+	return 0;
 }
 
 hooks::hooks() {
@@ -405,9 +413,10 @@ hooks::hooks() {
 		const ImWchar *glyph_ranges = font_cfg.GlyphRanges;
 
 		io.Fonts->AddFontDefault();
-		std::strcpy(font_cfg.Name, fmt::format("OpenSans-Regular.ttf, {}px",
-		                                       (int)font_cfg.SizePixels)
-		                               .c_str());
+		std::strcpy(font_cfg.Name,
+		            spdlog::fmt_lib::format("OpenSans-Regular.ttf, {}px",
+		                                    (int)font_cfg.SizePixels)
+		                .c_str());
 		io.FontDefault = io.Fonts->AddFontFromMemoryCompressedBase85TTF(
 		    rockwell_compressed_data_base85, font_cfg.SizePixels, &font_cfg,
 		    glyph_ranges);
@@ -427,13 +436,14 @@ hooks::hooks() {
 	    "Console", GuiFlags_DisablesMouse, ImVec2(0, 0), ImVec2(h, w),
 	    ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar |
 	        ImGuiWindowFlags_NoResize);
+	g_console->init();
 
-	g_memoryEditor =
-	    std::make_unique<memoryEditor>("Memory Editor", GuiFlags_DisablesMouse, ImVec2(500, 200),
-	                                   ImVec2(400, 300), ImGuiWindowFlags_None);
-	g_chatWindow =
-	    std::make_unique<chatWindow>("Chat Window", GuiFlags_None | GuiFlags_OpenOnStart, ImVec2(500, 200),
-	                                   ImVec2(400, 300), ImGuiWindowFlags_None);
+	g_memoryEditor = std::make_unique<memoryEditor>(
+	    "Memory Editor", GuiFlags_DisablesMouse, ImVec2(500, 200),
+	    ImVec2(400, 300), ImGuiWindowFlags_None);
+	g_chatWindow = std::make_unique<chatWindow>(
+	    "Chat Window", GuiFlags_None | GuiFlags_OpenOnStart, ImVec2(500, 200),
+	    ImVec2(400, 300), ImGuiWindowFlags_None);
 
 	g_serverConnection = std::make_unique<serverConnection>();
 	g_eventHandler = std::make_unique<eventHandler>();
@@ -458,7 +468,8 @@ void hooks::install() {
 	INSTALL(drawOptionsMenu);
 	INSTALL(drawMenuButton);
 	INSTALL(serverEventLoop);
+	// INSTALL(testHook);
 	// INSTALL(renderPNG);
 
-	g_utils->log(INFO, "Hooks installed!");
+	spdlog::info("Hooks installed!");
 }

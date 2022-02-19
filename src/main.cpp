@@ -18,9 +18,9 @@
 #define IMGUI_USER_CONFIG "gui/imconfig.h"
 #include "game.hpp"
 #include "hooks.hpp"
-#include "utils/settings.hpp"
-#include "structs.hpp"
 #include "networking/tcpSocket.hpp"
+#include "structs.hpp"
+#include "utils/settings.hpp"
 #include "utils/utils.hpp"
 
 static constexpr std::array handledSignals = {
@@ -43,7 +43,8 @@ static constexpr std::array handledSignals = {
 };
 
 static void atexitHandler() {
-	g_utils->log(INFO, fmt::format("Exiting Sub Rosa, Goodbye!"));
+	// crashes maybe due to some invalidation shiße
+	// spdlog::info("Exiting Sub Rosa, Goodbye!");
 }
 
 #ifndef _WIN32
@@ -59,9 +60,8 @@ static void signalHandler(int signal, siginfo_t* info, void* ucontext) {
 		}
 	}
 
-	g_utils->log(
-	    ERROR, fmt::format("Game Crash! {}, {}", strsignal(signal), def.data()));
-	g_utils->log(ERROR, fmt::format("Stack traceback:"));
+	spdlog::error("Game Crash! {}, {}", strsignal(signal), def.data());
+	spdlog::error("Stack traceback:");
 
 	void* array[10];
 	size_t size;
@@ -93,17 +93,15 @@ static void signalHandler(int signal, siginfo_t* info, void* ucontext) {
 			if (status == 0)
 				fun = buffer;
 			else if (status == -1)
-				g_utils->log(
-				    ERROR,
+				spdlog::error(
 				    "Error while demangling, a memory allocation failure occurred.");
 			else if (status == -2)
-				g_utils->log(
-				    ERROR,
+				spdlog::error(
 				    "Error while demangling, mangled_name is not a valid name under "
 				    "the C++ ABI mangling rules.");
 			else if (status == -3)
-				g_utils->log(
-				    ERROR, "Error while demangling, one of the arguments is invalid.");
+				spdlog::error(
+				    "Error while demangling, one of the arguments is invalid.");
 		}
 		int open_box_pos = str.find_first_of("[");
 		int close_box_pos = str.find_first_of("]", open_box_pos);
@@ -121,8 +119,7 @@ static void signalHandler(int signal, siginfo_t* info, void* ucontext) {
 		backtracePretty.push_back(
 		    formatBacktrace(i, std::string(stacktraceString[i])));
 
-	for (auto&& item : backtracePretty)
-		g_utils->log(ERROR, fmt::format("  {}", item.c_str()));
+	for (auto&& item : backtracePretty) spdlog::error("  {}", item.c_str());
 
 	// void* backtraceEntries[10];
 
@@ -150,9 +147,9 @@ BOOL WINAPI DllMain(_In_ HINSTANCE hinstDll, _In_ DWORD fdwReason,
 		_iobuf* data;
 		const errno_t res = freopen_s(&data, "CONOUT$", "w", stdout);
 		if (res != 0) {
-			ERROR_AND_EXIT(
-			    fmt::format("Failed to open stdout filestream. Error code: %i (%s)",
-			                res, std::system_category().message(res)));
+			ERROR_AND_EXIT(spdlog::fmt_lib::format(
+			    "Failed to open stdout filestream. Error code: %i (%s)", res,
+			    std::system_category().message(res)));
 			return false;
 		}
 
@@ -171,7 +168,6 @@ BOOL WINAPI DllMain(_In_ HINSTANCE hinstDll, _In_ DWORD fdwReason,
 void __attribute__((constructor)) entry() {
 #endif
 		std::atexit(&atexitHandler);
-
 #ifndef _WIN32
 		struct sigaction sigact;
 
@@ -182,22 +178,26 @@ void __attribute__((constructor)) entry() {
 			sighandler_t handler;
 
 			if (sigaction(sig.first, &sigact, nullptr) != 0) {
-				throw std::runtime_error(
-				    fmt::format("Error while assigning signal handler for {} ({})",
-				                sig.first, strsignal(sig.first)));
+				throw std::runtime_error(spdlog::fmt_lib::format(
+				    "Error while assigning signal handler for {} ({})", sig.first,
+				    strsignal(sig.first)));
 			}
 		}
 		std::signal(SIGPIPE, SIG_IGN);
 #endif
 
-		g_utils = std::make_unique<utils>(INFO);
+		g_utils = std::make_unique<utils>(spdlog::level::info);
+
+		spdlog::set_error_handler([](const std::string& msg) {
+			std::cout << "spdlog has errored, " << msg << std::endl;
+		});
+
 		g_settings = std::make_unique<settings>();
 		g_game = std::make_unique<game>();
-		g_utils->log(INFO,
-		             fmt::format("Base address: {:#x}", g_game->getBaseAddress()));
+		spdlog::info("Base address: {:#x}", g_game->getBaseAddress());
 		g_hooks = std::make_unique<hooks>();
 		g_hooks->install();
-		g_utils->log(INFO, "Everything done");
+		spdlog::info("Initalization complete.");
 
 #ifdef _WIN32
 	}

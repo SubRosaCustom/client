@@ -39,8 +39,7 @@ void eventHandler::processEvents() {
 				// read the draw text events info
 				if (re <= sizeof(DrawTextEvent)) {
 
-				g_utils->log(ERROR,
-				             fmt::format("LAAAAAAAa {}", data.message));
+				spdlog::error("LAAAAAAAa {}", data.message);
 					events.push_back(event);
 				}
 
@@ -48,8 +47,8 @@ void eventHandler::processEvents() {
 			}
 
 			default:
-				g_utils->log(ERROR,
-				             fmt::format("Unknown event type, {}", event.info.type));
+				spdlog::error(
+				             "Unknown event type, {}", event.info.type);
 				break;
 		}
 	}

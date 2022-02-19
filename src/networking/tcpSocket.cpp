@@ -52,13 +52,13 @@ TCPConnection::TCPConnection(std::string_view ip, int port) {
 	for (p = serverInfo; p != NULL; p = p->ai_next) {
 		if ((socketFD = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) ==
 		    -1) {
-			g_utils->log(DEBUG, "socket failed trying next");
+			spdlog::debug( "socket failed trying next");
 			continue;
 		}
 
 		if (connect(socketFD, p->ai_addr, p->ai_addrlen) == -1) {
 			WIN_LIN(closesocket, ::close)(socketFD);
-			g_utils->log(DEBUG, "connect failed trying next");
+			spdlog::debug( "connect failed trying next");
 			continue;
 		}
 
@@ -70,7 +70,7 @@ TCPConnection::TCPConnection(std::string_view ip, int port) {
 	freeaddrinfo(serverInfo);
 
 	if (fcntl(socketFD, F_GETFL) & O_NONBLOCK)
-		g_utils->log(DEBUG, "Socket is already non blocking...");
+		spdlog::debug( "Socket is already non blocking...");
 	else if (fcntl(socketFD, F_SETFL, fcntl(socketFD, F_GETFL) | O_NONBLOCK) < 0)
 		throw std::runtime_error("Failed to set socket flags");
 
@@ -152,7 +152,7 @@ int TCPConnection::recv(char* data, int bytesToRead) {
 		throw std::runtime_error("Trying to recv from closed session");
 
 	int bytesRead = ::recv(socketFD, data, bytesToRead, 0);
-	g_utils->log(ERROR, fmt::format("Read {}", bytesToRead));
+	spdlog::error("Read {}", bytesToRead);
 	hexdump((char*)std::string(data, bytesRead).c_str(), bytesRead);
 	if (bytesRead == -1) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) {

@@ -6,7 +6,7 @@
 #include "imconfig.h"
 #include "imgui.h"
 
-typedef class gui;
+class gui;
 extern std::vector<gui *> activeGuiList;
 
 typedef int GuiFlags;
@@ -18,7 +18,6 @@ enum GuiFlags_ {
 
 class gui {
  public:
-	virtual void onInit(){};
 	explicit gui(std::string_view title = "Default GUI Title",
 	             GuiFlags _guiFlags = GuiFlags_None,
 	             ImVec2 startPos = ImVec2(300, 200),
@@ -31,7 +30,6 @@ class gui {
 	      windowFlags(flags),
 	      disableMouse(_guiFlags & GuiFlags_DisablesMouse) {
 		activeGuiList.push_back(this);
-		onInit();
 	};
 	explicit gui(gui &&) = default;
 	explicit gui(const gui &) = default;
@@ -62,8 +60,8 @@ class gui {
 				}
 				ImGui::SetWindowPos(pos, ImGuiCond_Once);
 				drawContents();
-				ImGui::End();
 			}
+			ImGui::End();
 			postBegin();
 		}
 

@@ -57,3 +57,12 @@ struct ChatMessage {
 	int volume;
 	char message[128];
 };
+
+// 0x14 bytes
+struct CSKeyboard {
+	int type; // 0 for down, 1 for up
+	int unk0;
+	int unk1;
+	int unk2;
+	int unk3;
+};
