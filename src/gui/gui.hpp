@@ -3,6 +3,8 @@
 #include <string_view>
 #include <vector>
 
+#include <SDL2/SDL.h>
+
 #include "imconfig.h"
 #include "imgui.h"
 
