@@ -461,7 +461,7 @@ void hooks::install() {
 	INSTALL(mouseRelativeUpdate);
 	INSTALL(renderFrame);
 	INSTALL(drawHud);
-	INSTALL(drawText);
+	// INSTALL(drawText);
 	INSTALL(drawMainMenu);
 	INSTALL(drawCreditsMenu);
 	INSTALL(drawOptionsMenu);
