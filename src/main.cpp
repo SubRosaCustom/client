@@ -60,8 +60,8 @@ static void signalHandler(int signal, siginfo_t* info, void* ucontext) {
 		}
 	}
 
-	spdlog::error("Game Crash! {}, {}", strsignal(signal), def.data());
-	spdlog::error("Stack traceback:");
+	printf(spdlog::fmt_lib::format("Game Crash! {}, {}\n", strsignal(signal), def.data()).c_str());
+	printf(spdlog::fmt_lib::format("Stack traceback:\n").c_str());
 
 	void* array[10];
 	size_t size;
@@ -93,15 +93,15 @@ static void signalHandler(int signal, siginfo_t* info, void* ucontext) {
 			if (status == 0)
 				fun = buffer;
 			else if (status == -1)
-				spdlog::error(
-				    "Error while demangling, a memory allocation failure occurred.");
+				printf(
+				    "Error while demangling, a memory allocation failure occurred.\n");
 			else if (status == -2)
-				spdlog::error(
+				printf(
 				    "Error while demangling, mangled_name is not a valid name under "
-				    "the C++ ABI mangling rules.");
+				    "the C++ ABI mangling rules.\n");
 			else if (status == -3)
-				spdlog::error(
-				    "Error while demangling, one of the arguments is invalid.");
+				printf(
+				    "Error while demangling, one of the arguments is invalid.\n");
 		}
 		int open_box_pos = str.find_first_of("[");
 		int close_box_pos = str.find_first_of("]", open_box_pos);
@@ -119,7 +119,7 @@ static void signalHandler(int signal, siginfo_t* info, void* ucontext) {
 		backtracePretty.push_back(
 		    formatBacktrace(i, std::string(stacktraceString[i])));
 
-	for (auto&& item : backtracePretty) spdlog::error("  {}", item.c_str());
+	for (auto&& item : backtracePretty) printf(spdlog::fmt_lib::format("  {}\n", item.c_str()).c_str());
 
 	// void* backtraceEntries[10];
 
