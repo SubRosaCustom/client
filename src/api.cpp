@@ -12,7 +12,21 @@
 
 namespace api {
 ImDrawList* bgDrawList;
-void setDrawList(ImDrawList* n) { bgDrawList = n; }
+std::vector<std::unique_ptr<APIMessage_t>> messages = {};
+
+void frame(ImDrawList* n) {
+	bgDrawList = n;
+	messages.erase(std::remove_if(messages.begin(), messages.end(),
+	                              [](auto &&i) { return i->countdownStart <= 0; }),
+	               messages.end());
+
+	for (auto &&i : messages) {
+		i->countdownStart = i->countdownStart - 1;
+		spdlog::info("ben: {}", i->text);
+		drawTextImGui(i->text, i->x, i->y, i->scale, 0, i->r, i->g, i->b,
+		              i->countdownStart / 200.f);
+	}
+}
 void drawText(std::string_view text, float x, float y, float scale, int params,
               float r, float g, float b, float a) {
 #ifdef _WIN32
@@ -29,8 +43,8 @@ void drawTextImGui(std::string_view text, float x, float y, float scale,
 
 		bgDrawList->AddText(ctx.FontDefault, scale, ImVec2(x + 1, y + 1),
 		                    ImColor(0.f, 0.f, 0.f, a), text.data());
-		bgDrawList->AddText(ctx.FontDefault, scale, ImVec2(x, y), ImColor(r, g, b, a),
-		                    text.data());
+		bgDrawList->AddText(ctx.FontDefault, scale, ImVec2(x, y),
+		                    ImColor(r, g, b, a), text.data());
 	}
 }
 void drawRectFilledImGui(ImVec2 start, ImVec2 dimensions, ImColor col,
@@ -43,5 +57,10 @@ void drawRectFilledImGui(ImVec2 start, ImVec2 dimensions, ImColor col,
 		    ImVec2(start.x + dimensions.x, start.y + dimensions.y), col, rounding,
 		    flags);
 	}
+}
+void addText(std::string text, float x, float y, float scale,
+             int countdownStart, float r, float g, float b) {
+	
+	messages.push_back(std::make_unique<APIMessage_t>(text, x, y, scale, countdownStart, r, g, b));
 }
 }  // namespace api

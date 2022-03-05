@@ -46,8 +46,8 @@ add_library (client SHARED
 	src/game.cpp
 	src/main.cpp
 	src/api.cpp
-	src/events.cpp
 	src/gui/console.cpp
+	src/events.cpp
 	src/utils/settings.cpp
 	src/networking/serverConnection.cpp
 	src/drawText.asm
