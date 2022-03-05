@@ -71,8 +71,9 @@ int pollEvent(SDL_Event *event) {
 		}
 	}
 
-	if (result && ImGui_ImplSDL2_ProcessEvent(event) && shouldDisableMouse)
+	if (result && ImGui_ImplSDL2_ProcessEvent(event) && shouldDisableMouse) {
 		event->type = 0;
+	}
 
 	for (auto &&gui : activeGuiList) {
 		gui->handleKeyPress(event);
@@ -109,6 +110,12 @@ void swapWindow(SDL_Window *window) {
 	auto isAnyGuiActive = false;
 	auto &io = ImGui::GetIO();
 	auto &style = ImGui::GetStyle();
+
+	if (ImGui::IsKeyPressed(ImGuiKey_Insert))
+		g_console_options->should_close = !g_console_options->should_close;
+
+	if (!g_console_options->should_close) g_console->show();
+
 	io.MouseDrawCursor = false;
 	for (auto &&gui : activeGuiList) {
 		gui->draw();
