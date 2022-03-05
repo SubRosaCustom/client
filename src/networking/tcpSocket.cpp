@@ -152,8 +152,6 @@ int TCPConnection::recv(char* data, int bytesToRead) {
 		throw std::runtime_error("Trying to recv from closed session");
 
 	int bytesRead = ::recv(socketFD, data, bytesToRead, 0);
-	spdlog::error("Read {}", bytesToRead);
-	hexdump((char*)std::string(data, bytesRead).c_str(), bytesRead);
 	if (bytesRead == -1) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
 			return 0;
