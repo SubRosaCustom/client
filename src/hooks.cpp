@@ -427,16 +427,15 @@ hooks::hooks() {
 
 	};
 
-	int w, h;
-	SDL_GetWindowSize(0, &w, &h);
-
 	g_settings->init();
 
-	g_console = std::make_unique<console>(
-	    "Console", GuiFlags_DisablesMouse, ImVec2(0, 0), ImVec2(h, w),
-	    ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar |
-	        ImGuiWindowFlags_NoResize);
-	g_console->init();
+	g_notificationManager = std::make_unique<notificationManager>();
+	g_console_options = std::make_unique<console_options>();
+	g_console = std::make_unique<ImTerm::terminal<terminal_helper>>(
+	    *g_console_options, "Sub Rosa: Custom Console");
+	g_console->set_min_log_level(ImTerm::message::severity::info);
+
+	spdlog::default_logger()->sinks().push_back(g_console->get_terminal_helper());
 
 	g_memoryEditor = std::make_unique<memoryEditor>(
 	    "Memory Editor", GuiFlags_DisablesMouse, ImVec2(500, 200),
