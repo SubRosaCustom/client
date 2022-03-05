@@ -15,7 +15,6 @@
 #include "spdlog/formatter.h"
 #include "spdlog/spdlog.h"
 
-static inline constexpr int subRosaCustomPortStart = 26000;
 static inline constexpr int subRosaCustomMagic = 0x53524345;  // hex for "SRCE"
 static inline constexpr std::array<int, 3> customVersion = {
     0, 0, 1};  // semantic versioning
@@ -27,14 +26,14 @@ static inline constexpr std::array<int, 3> customVersion = {
 #define RETURN_ADDRESS() std::uintptr_t(_ReturnAddress())
 #define FRAME_ADDRESS() \
 	(std::uintptr_t(_AddressOfReturnAddress()) - sizeof(std::uintptr_t))
-#define ERROR_AND_EXIT(error)                                      \
-	{                                                                \
-		MessageBoxA(NULL,                                              \
+#define ERROR_AND_EXIT(error)                                                  \
+	{                                                                            \
+		MessageBoxA(NULL,                                                          \
 		            spdlog::fmt_lib::format("{}, Error no: {} ({})", error, errno, \
-		                        std::system_category().message(errno)) \
-		                .c_str(),                                      \
-		            "Client", MB_OK | MB_ICONERROR);                   \
-		exit(1);                                                       \
+		                                    std::system_category().message(errno)) \
+		                .c_str(),                                                  \
+		            "Client", MB_OK | MB_ICONERROR);                               \
+		exit(1);                                                                   \
 	}
 
 #define THISCALL __thiscall
@@ -46,9 +45,9 @@ static inline constexpr std::array<int, 3> customVersion = {
 #define WIN_LIN(win, lin) lin
 #define RETURN_ADDRESS() std::uintptr_t(__builtin_return_address(0))
 #define FRAME_ADDRESS() std::uintptr_t(__builtin_frame_address(0))
-#define ERROR_AND_EXIT(text)                                              \
+#define ERROR_AND_EXIT(text)                            \
 	spdlog::error("{}, Error no: {} ({})", text, errno,   \
-	                                std::system_category().message(errno)); \
+	              std::system_category().message(errno)); \
 	exit(1);
 
 #define THISCALL
@@ -65,9 +64,7 @@ static inline constexpr std::array<int, 3> customVersion = {
 
 class utils {
  public:
-	utils(spdlog::level::level_enum level) {
-		spdlog::set_level(level);
-	};
+	utils(spdlog::level::level_enum level) { spdlog::set_level(level); };
 };
 
 inline std::unique_ptr<utils> g_utils;
