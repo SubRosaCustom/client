@@ -5,7 +5,7 @@
 const bool settings::load(const char *config_name) {
 	if (!std::filesystem::exists(std::filesystem::path(config_name)))
 		throw std::invalid_argument(
-		    fmt::format("File '{}' doesn't exist", config_name));
+		    spdlog::fmt_lib::format("File '{}' doesn't exist", config_name));
 
 	std::ifstream inConfigFile(config_name);
 	int config_line = 0;
@@ -14,7 +14,7 @@ const bool settings::load(const char *config_name) {
 
 		int equal_pos = line.find_first_of("=");
 		if (equal_pos == std::string::npos)
-			throw std::runtime_error(fmt::format(
+			throw std::runtime_error(spdlog::fmt_lib::format(
 			    "Settings, Invalid config, no setter (=) found, {}:{} ({})",
 			    config_name, config_line, line.c_str()));
 
@@ -28,13 +28,13 @@ const bool settings::load(const char *config_name) {
 			int end_quote_pos = line.find_last_of("\"");
 
 			if (!end_quote_pos)
-				throw std::runtime_error(fmt::format(
+				throw std::runtime_error(spdlog::fmt_lib::format(
 				    "Settings, Invalid config, no end quote found, {}:{} ({})",
 				    config_name, config_line, line.c_str()));
 
 			if (end_quote_pos != line.size() - 1)
 				throw std::runtime_error(
-				    fmt::format("Settings, Invalid config, doesn't end with end quote, "
+				    spdlog::fmt_lib::format("Settings, Invalid config, doesn't end with end quote, "
 				                "{}:{} ({})",
 				                config_name, config_line, line.c_str()));
 
@@ -47,7 +47,7 @@ const bool settings::load(const char *config_name) {
 		auto &type = vars.at(key).type();
 		if (type == typeid(int)) {
 			if (isNumber == false)
-				throw std::runtime_error(fmt::format(
+				throw std::runtime_error(spdlog::fmt_lib::format(
 				    "Settings, Invalid config, expected int got string, {}:{} ({})",
 				    config_name, config_line, line.c_str()));
 
@@ -55,7 +55,7 @@ const bool settings::load(const char *config_name) {
 		} else if (type == typeid(float)) {
 			if (isNumber == false)
 				throw std::runtime_error(
-				    fmt::format("Settings, Invalid config, expected float got string, "
+				    spdlog::fmt_lib::format("Settings, Invalid config, expected float got string, "
 				                "{}:{} ({})",
 				                config_name, config_line, line.c_str()));
 
@@ -63,7 +63,7 @@ const bool settings::load(const char *config_name) {
 		} else if (type == typeid(bool)) {
 			if (isNumber == false)
 				throw std::runtime_error(
-				    fmt::format("Settings, Invalid config, expected bool got string, "
+				    spdlog::fmt_lib::format("Settings, Invalid config, expected bool got string, "
 				                "{}:{} ({})",
 				                config_name, config_line, line.c_str()));
 
@@ -71,7 +71,7 @@ const bool settings::load(const char *config_name) {
 		} else if (type == typeid(const char *)) {
 			if (isNumber == true)
 				throw std::runtime_error(
-				    fmt::format("Settings, Invalid config, expected string got number, "
+				    spdlog::fmt_lib::format("Settings, Invalid config, expected string got number, "
 				                "{}:{} ({})",
 				                config_name, config_line, line.c_str()));
 
@@ -98,8 +98,7 @@ const bool settings::save(const char *config_name) {
 			outConfigFile << key << " = " << std::any_cast<const char *>(value)
 			              << "\n";
 		else {
-			g_utils->log(
-			    DEBUG, fmt::format("Settings, Unknown type {}", value.type().name()));
+			spdlog::debug("Settings, Unknown type {}", value.type().name());
 		}
 	}
 	outConfigFile.flush();

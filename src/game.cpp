@@ -28,6 +28,11 @@ game::game() {
 	chatMessages = (ChatMessage*)(base + WIN_LIN(0x52e8f660, 0x5e15da60));
 	amountOfChatMessages = (int*)(base + WIN_LIN(0x52e98e60, 0x1057620));
 	numEventsNeedSync = (int*)(base + WIN_LIN(0x64d2dd08, 0x1820cfe8));
+	isInGame = (int*)(base + WIN_LIN(TODO, 0x1ce18fe0));
+	mainMenuState = (int*)(base + WIN_LIN(TODO, 0x1ce18fe4));
+	escapeMenuState = (int*)(base + WIN_LIN(TODO, 0x1ce18fe8));
+	csKeyboardIndex = (int*)(base + WIN_LIN(TODO, 0x1a6f67c0));
+	csKeyboard = (CSKeyboard*)(base + WIN_LIN(TODO, 0x1a6f67c8));
 
 	// This function is inlined in Windows
 	// I LOVE MSVC
@@ -84,7 +89,10 @@ game::game() {
 
 	serverEventLoop = base + WIN_LIN(TODO, 0x14067f);
 	serverEventLoopFunc = (decltype(serverEventLoopFunc))(serverEventLoop);
-
+	
+	testHook = base + WIN_LIN(TODO, 0x2719f);
+	testHookFunc = (decltype(testHookFunc))(testHook);
+	
 	renderPNG = base + WIN_LIN(0x6d300, 0x2f166);
 	renderPNGFunc = (decltype(renderPNGFunc))(renderPNG);
 }

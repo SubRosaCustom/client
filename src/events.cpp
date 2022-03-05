@@ -1,56 +1,94 @@
 #include "events.hpp"
 
 #include "networking/serverConnection.hpp"
+#include "utils/notifications.hpp"
 
-/*
- >00000000 00000000 68656C6F 007F0000< ........helo.... 00000000
- >C01E03B7 FE7F0000 2D5AD847 4A7F0000< ........-Z.GJ... 00000010
- >2AA30000 00000000 A0CEEF47 4A7F0000< *..........GJ... 00000020
- >E01E03B7 FE7F0000 A6CAE747 4A7F0000< ...........GJ... 00000030
- >C041B995 B0550000 00004843 00004843< .A...U....HC..HC 00000040
- >00008041 00000000 0000803F 0000803F< ...A.......?...? 00000050
- >0000803F 0000803F<                   ...?...?         00000060
- 
-  00000000  00 00 00 00 00 00 00 00  68 65 6C 69 00 00 00 00  ........heli....
-  00000010  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
-  00000020  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
-  00000030  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
-  00000040  00 00 00 00 00 00 00 00  00 00 80 41 00 00 80 41  ..........�A..�A
-  00000050  00 00 80 41 00 00 00 00  00 00 80 3F 00 00 80 3F  ..�A......�?..�?
-  00000060  00 00 80 3F 00 00 80 3F                           ..�?..�?
-*/
+void eventHandler::triggerEventHandshake() {
+	if (!g_serverConnection->connectionCheck())
+		throw std::runtime_error("Connection doesn't exist.");
+
+	packetHandler handSend;
+	handSend.write<int>(0);   // handshake type
+	handSend.write<int>(16);  // length
+	handSend.write<int>(subRosaCustomMagic);
+	handSend.write<int>(customVersion[0]);
+	handSend.write<int>(customVersion[1]);
+	handSend.write<int>(customVersion[2]);
+
+	if (g_serverConnection->connection->send(handSend.get()) <= 0)
+		throw std::runtime_error("Handshake send failed.");
+}
 
 void eventHandler::processEvents() {
-	if (!g_serverConnection->connection.get()) return;
+	if (!g_serverConnection->connection.get() ||
+	    !g_serverConnection->connection->valid)
+		return;
 	Event event;
+	char header[sizeof(EventInfo) * 2];
+	std::memset(&header, 0, sizeof(header));
 
-	int first = g_serverConnection->connection->recv((char *)&event.info,
-	                                                 sizeof(EventInfo));
-	// try to read the event header
-	if (first == sizeof(EventInfo)) {
-		// now that we've read the events header read the actual event data
+	int first =
+	    g_serverConnection->connection->recv(header, sizeof(EventInfo) * 2);
 
-		switch (event.info.type) {
-			case EVENT_DRAWTEXT: {
-				DrawTextEvent data = event.data.drawText;
+	if (first != sizeof(EventInfo) * 2) return;
 
-				int re = g_serverConnection->connection->recv((char *)&data,
-				                                              sizeof(DrawTextEvent));
-				// read the draw text events info
-				if (re <= sizeof(DrawTextEvent)) {
+	packetHandler headerHandler(header);
+	event.info.tick = headerHandler.read<int>();
+	event.info.type = headerHandler.read<int>();
+	event.info.length = headerHandler.read<int>();
+	spdlog::debug("Packet Length: {}", event.info.length);
 
-				g_utils->log(ERROR,
-				             fmt::format("LAAAAAAAa {}", data.message));
-					events.push_back(event);
-				}
+	char dat[event.info.length];
+	std::memset(&dat, 0, sizeof(dat));
+	int second = g_serverConnection->connection->recv(dat, event.info.length);
+	if (second != event.info.length) return;
 
-				break;
-			}
+	packetHandler dataHandler(dat);
+	switch (event.info.type) {
+		case EVENT_HANDSHAKE: {
+			HandshakeEvent data = event.data.handshake;
 
-			default:
-				g_utils->log(ERROR,
-				             fmt::format("Unknown event type, {}", event.info.type));
-				break;
+			dataHandler.readString(15).copy(data.message, 15);
+			data.message[15] = '\0';
+			data.magic = dataHandler.read<int>();
+
+			spdlog::info("Handshake result {}", data.message);
+
+			if (std::strstr(data.message, "MoonStarDestiny") &&
+			    data.magic == subRosaCustomMagic)
+				spdlog::info("Success handshake");
+
+			break;
 		}
+		case EVENT_DRAWTEXT: {
+			DrawTextEvent data = event.data.drawText;
+
+			event.data.drawText.messageLength = dataHandler.read<int>();
+
+			dataHandler.readString(event.data.drawText.messageLength)
+			    .copy(event.data.drawText.message, event.data.drawText.messageLength);
+			event.data.drawText.message[event.data.drawText.messageLength] = '\0';
+			event.data.drawText.message[64] = '\0';
+
+			spdlog::info("{}", event.data.drawText.message);
+
+			event.data.drawText.x = dataHandler.read<float>();
+			event.data.drawText.y = dataHandler.read<float>();
+			event.data.drawText.scale = dataHandler.read<float>();
+			event.data.drawText.r = dataHandler.read<float>();
+			event.data.drawText.g = dataHandler.read<float>();
+			event.data.drawText.b = dataHandler.read<float>();
+			event.data.drawText.a = dataHandler.read<float>();
+
+			api::addText(event.data.drawText.message, event.data.drawText.x,
+			             event.data.drawText.y, event.data.drawText.scale, 600,
+			             event.data.drawText.r, event.data.drawText.g,
+			             event.data.drawText.b);
+			break;
+		}
+
+		default:
+			// spdlog::error("Unknown event type, {}", event.info.type);
+			break;
 	}
 }

@@ -56,6 +56,11 @@ class game {
 	ChatMessage* chatMessages;
 	int* amountOfChatMessages;
 	int* numEventsNeedSync;
+	int* isInGame;
+	int* mainMenuState;
+	int* escapeMenuState;
+	int* csKeyboardIndex;
+	CSKeyboard* csKeyboard;
 
 	std::uintptr_t swapWindow;
 	std::add_pointer_t<decltype(SDL_GL_SwapWindow)> swapWindowFunc;
@@ -124,6 +129,9 @@ class game {
 	std::uintptr_t serverEventLoop;
 	std::add_pointer_t<void(void)> serverEventLoopFunc;
 
+	std::uintptr_t testHook;
+	std::add_pointer_t<int(void)> testHookFunc;
+	
 	std::uintptr_t renderPNG;
 	std::add_pointer_t<int(int, int, char, float, float, float, float)>
 	    renderPNGFunc;

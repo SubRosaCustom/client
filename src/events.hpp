@@ -1,5 +1,6 @@
 #include "api.hpp"
 #include "networking/tcpSocket.hpp"
+#include "networking/packetHandler.hpp"
 
 #include <memory>
 
@@ -7,25 +8,33 @@
 struct EventInfo {
 	int tick;
 	int type;
+	int length;
 };
 
 enum EventTypes_enum {
+	EVENT_HANDSHAKE,
 	EVENT_DRAWTEXT,
 };
 
 struct DrawTextEvent {
+	int messageLength;
 	char message[64];
 	float x;
 	float y;
 	float scale;
-	int flags;
 	float r;
 	float g;
 	float b;
 	float a;
 };
 
+struct HandshakeEvent {
+	char message[15];
+	int magic;
+};
+
 union EventUnion {
+	HandshakeEvent handshake;
 	DrawTextEvent drawText;
 	// other events...
 };
@@ -45,7 +54,7 @@ class eventHandler {
 	~eventHandler() {};
 
 	void processEvents();
-	std::vector<Event> events;
+	void triggerEventHandshake();
  private:
 };
 

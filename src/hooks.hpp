@@ -28,6 +28,7 @@ class hooks {
 	subhook::Hook drawOptionsMenuHook;
 	subhook::Hook drawMenuButtonHook;
 	subhook::Hook serverEventLoopHook;
+	subhook::Hook testHookHook;
 	subhook::Hook renderPNGHook;
 };
 

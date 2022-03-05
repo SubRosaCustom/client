@@ -2,6 +2,7 @@
 
 #include "gui.hpp"
 #include "imgui_memory_editor.hpp"
+#include <SDL2/SDL.h>
 
 class memoryEditor : public gui {
  public:

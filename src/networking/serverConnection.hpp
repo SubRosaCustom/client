@@ -13,8 +13,7 @@ class serverConnection {
 	std::shared_ptr<TCPConnection> connection;
 
 	bool connectionCheck() const;
-	bool handshake() const;
-
+	
 	int recv(char* data, int bytesToRead);
 	int send(std::string_view data);
 

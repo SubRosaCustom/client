@@ -30,7 +30,7 @@ class settings {
 
 	template <typename T>
 	T get_var(const char *idx) {
-		if (!vars.contains(idx)) throw std::runtime_error(fmt::format("Unknown setting '{}'", idx));
+		if (!vars.contains(idx)) throw std::runtime_error(spdlog::fmt_lib::format("Unknown setting '{}'", idx));
 		return std::any_cast<T>(vars.at(idx));
 	}
 
@@ -41,10 +41,11 @@ class settings {
 		auto &type = v.type();
 		if (type != typeid(val))
 			throw std::runtime_error(
-			    fmt::format("Settings, Invalid type for {}, expected {} got {}", idx,
+			    spdlog::fmt_lib::format("Settings, Invalid type for {}, expected {} got {}", idx,
 			                type.name(), typeid(val).name()));
 
 		vars.at(idx) = val;
+		return true;
 	}
 
 	const std::type_info &get_type_info(const char *idx) {
