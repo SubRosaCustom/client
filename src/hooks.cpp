@@ -32,6 +32,7 @@
 #include "networking/serverConnection.hpp"
 #include "networking/tcpSocket.hpp"
 #include "structs.hpp"
+#include "utils/notifications.hpp"
 #include "utils/settings.hpp"
 #include "utils/utils.hpp"
 
@@ -158,23 +159,9 @@ void swapWindow(SDL_Window *window) {
 		style.Alpha = 1.f;
 	}
 
-	api::setDrawList(ImGui::GetBackgroundDrawList());
+	api::frame(ImGui::GetBackgroundDrawList());
 
-	for (auto &&event : g_eventHandler->events) {
-		switch (event.info.type) {
-			case EVENT_DRAWTEXT:
-				DrawTextEvent data = event.data.drawText;
-				// spdlog::info(
-				//  "barbara {}, {}, {}, {}, {}, {}, {}, {}, {}",
-				//  data.message, data.x, data.y, data.scale,
-				//  data.flags, data.r, data.g, data.b, data.a);
-
-				api::drawTextImGui(data.message, data.x, data.y, data.scale, data.flags,
-				                   data.r, data.g, data.b, data.a);
-
-				break;
-		}
-	}
+	g_notificationManager->render();
 
 	ImGui::EndFrame();
 	ImGui::Render();
