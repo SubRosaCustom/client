@@ -292,7 +292,7 @@ int drawCreditsMenu() {
 
 	return ret;
 }
-
+#include "utils/assetManager.hpp"
 int drawOptionsMenu() {
 	REMOVE_HOOK(drawOptionsMenu);
 
@@ -311,6 +311,8 @@ int drawOptionsMenu() {
 
 	static int smallChatMessages = (int)g_settings->get_var<bool>("small_chat");
 	static int expFPSUncap = (int)g_settings->get_var<bool>("exp_fps_uncap");
+	static int desert = (int)g_settings->get_var<bool>("desert");
+
 	g_game->drawMenuTextFunc((char *)"Custom Edition Settings");
 	if (g_game->drawMenuCheckboxFunc((char *)"Small Chat Messages",
 	                                 &smallChatMessages)) {
@@ -320,6 +322,11 @@ int drawOptionsMenu() {
 	if (g_game->drawMenuCheckboxFunc((char *)"FPS Uncap (Experimental!)",
 	                                 &expFPSUncap)) {
 		g_settings->set_var("exp_fps_uncap", (bool)expFPSUncap);
+		g_settings->save();
+	}
+	if (g_game->drawMenuCheckboxFunc((char *)"37 Desert (Requires Restart)",
+	                                 &desert)) {
+		g_settings->set_var("desert", (bool)desert);
 		g_settings->save();
 	}
 
@@ -425,9 +432,12 @@ hooks::hooks() {
 
 	g_notificationManager = std::make_unique<notificationManager>();
 	g_console_options = std::make_unique<console_options>();
+	g_console_options->should_close = true;
 	g_console = std::make_unique<ImTerm::terminal<terminal_helper>>(
 	    *g_console_options, "Sub Rosa: Custom Console");
-	g_console->set_min_log_level(ImTerm::message::severity::info);
+	g_console->set_min_log_level(ImTerm::message::severity::trace);
+
+	g_assetManager = std::make_unique<AssetManager>();
 
 	spdlog::default_logger()->sinks().push_back(g_console->get_terminal_helper());
 
@@ -448,6 +458,70 @@ void sdlDelay(Uint32 a) {
 	if (!g_settings->get_var<bool>("exp_fps_uncap")) g_game->sdlDelayFunc(a);
 }
 
+int loadCMO(int address, int a, char *fileName) {
+	REMOVE_HOOK(loadCMO);
+
+	spdlog::trace("[Sub Rosa] Loading CMO '{}' into index {}", fileName, address);
+	g_assetManager->callback(AssetType_CMO, address, fileName);
+
+	return g_game->loadCMOFunc(address, a, fileName);
+}
+
+void loadCMC(int index, char *fileName) {
+	REMOVE_HOOK(loadCMC);
+
+	spdlog::info("[Sub Rosa] Loading CMC '{}' into index {}", fileName, index);
+	try {
+		g_assetManager->callback(AssetType_CMO, index, fileName);
+	} catch (const std::exception &e) {
+		spdlog::error("Load CMC, {}", e.what());
+	}
+
+	g_game->loadCMCFunc(index, fileName);
+}
+
+void createTexture(int textureLocation, int a, int b, int c, int d, int f) {
+	REMOVE_HOOK(createTexture);
+
+	static std::vector<std::pair<int, char *>> patches = {
+	    {2, (char *)(g_game->getBaseAddress() +
+	                 WIN_LIN(TODO, 0x145a3c + 2))},  // normal landscape
+	    {1, (char *)(g_game->getBaseAddress() +
+	                 WIN_LIN(TODO, 0x145a42 + 2))},  // normal landscape
+	    {0, (char *)(g_game->getBaseAddress() +
+	                 WIN_LIN(TODO, 0x145a48 + 2))},  // normal landscape
+	    {2, (char *)(g_game->getBaseAddress() +
+	                 WIN_LIN(TODO, 0x145abd + 2))},  // landscape reflection
+	    {1, (char *)(g_game->getBaseAddress() +
+	                 WIN_LIN(TODO, 0x145ac3 + 2))},  // landscape reflection
+	    {0, (char *)(g_game->getBaseAddress() +
+	                 WIN_LIN(TODO, 0x145ac9 + 2))},  // landscape reflection
+	};
+
+	static bool once = false;
+	if (g_settings->get_var<bool>("desert") && !once) {
+		for (auto &&patch : patches) {
+			switch (patch.first) {
+				case 0:
+					*patch.second = '\x97';
+					break;
+				case 1:
+					*patch.second = '\x7b';
+					break;
+				case 2:
+					*patch.second = '\x54';
+					break;
+
+				default:
+					break;
+			}
+		}
+		once = true;
+	}
+
+	g_game->createTextureFunc(textureLocation, a, b, c, d, f);
+};
+
 void hooks::install() {
 	INSTALL(swapWindow);
 	INSTALL(pollEvent);
@@ -463,6 +537,9 @@ void hooks::install() {
 	INSTALL(serverEventLoop);
 	// INSTALL(testHook);
 	// INSTALL(renderPNG);
+	INSTALL(createTexture);
+	INSTALL(loadCMO);
+	INSTALL(loadCMC);
 
 	spdlog::info("Hooks installed!");
 }

@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 3.8)
 
 project(client)
 
-set(CMAKE_C_FLAGS_RELEASE "-O3 -fvisibility=hidden -flto -DNDEBUG -Wfatal-errors") # -fno-exceptions
+set(CMAKE_C_FLAGS_RELEASE "-O3 -fvisibility=hidden -flto -DNDEBUG -Wfatal-errors -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -Wold-style-cast -Wcast-align -Wcast-align -Woverloaded-virtual -Wpedantic -Wconversion -Wsign-conversion -Wmisleading-indentation -Wduplicated-cond -Weffc++") # -fno-exceptions
 
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s")
@@ -10,7 +10,7 @@ endif()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fno-rtti")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fno-rtti -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -Wold-style-cast -Wcast-align -Wcast-align -Woverloaded-virtual -Wpedantic -Wconversion -Wsign-conversion -Wmisleading-indentation -Wduplicated-cond -Weffc++")
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} --no-gnu-unique")
@@ -49,6 +49,7 @@ add_library (client SHARED
 	src/gui/console.cpp
 	src/events.cpp
 	src/utils/settings.cpp
+	src/utils/assetManager.cpp
 	src/networking/serverConnection.cpp
 	src/drawText.asm
 )

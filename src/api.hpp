@@ -5,7 +5,7 @@
 #include <memory>
 #include <vector>
 
-#include "imconfig.h"
+#include "gui/imconfig.hpp"
 #include "imgui.h"
 
 struct APIMessage_t {

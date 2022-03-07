@@ -21,6 +21,7 @@ class settings {
 	    {"console_open", false},
 	    {"small_chat", false},
 	    {"exp_fps_uncap", false},
+	    {"desert", false},
 	};
 
  public:

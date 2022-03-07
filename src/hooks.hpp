@@ -30,6 +30,9 @@ class hooks {
 	subhook::Hook serverEventLoopHook;
 	subhook::Hook testHookHook;
 	subhook::Hook renderPNGHook;
+	subhook::Hook createTextureHook;
+	subhook::Hook loadCMOHook;
+	subhook::Hook loadCMCHook;
 };
 
 inline std::unique_ptr<hooks> g_hooks;
