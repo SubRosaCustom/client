@@ -292,7 +292,7 @@ int drawCreditsMenu() {
 
 	return ret;
 }
-
+#include "utils/assetManager.hpp"
 int drawOptionsMenu() {
 	REMOVE_HOOK(drawOptionsMenu);
 
@@ -311,6 +311,8 @@ int drawOptionsMenu() {
 
 	static int smallChatMessages = (int)g_settings->get_var<bool>("small_chat");
 	static int expFPSUncap = (int)g_settings->get_var<bool>("exp_fps_uncap");
+	static int desert = (int)g_settings->get_var<bool>("desert");
+
 	g_game->drawMenuTextFunc((char *)"Custom Edition Settings");
 	if (g_game->drawMenuCheckboxFunc((char *)"Small Chat Messages",
 	                                 &smallChatMessages)) {
@@ -320,6 +322,11 @@ int drawOptionsMenu() {
 	if (g_game->drawMenuCheckboxFunc((char *)"FPS Uncap (Experimental!)",
 	                                 &expFPSUncap)) {
 		g_settings->set_var("exp_fps_uncap", (bool)expFPSUncap);
+		g_settings->save();
+	}
+	if (g_game->drawMenuCheckboxFunc((char *)"37 Desert (Requires Restart)",
+	                                 &desert)) {
+		g_settings->set_var("desert", (bool)desert);
 		g_settings->save();
 	}
 
@@ -425,9 +432,12 @@ hooks::hooks() {
 
 	g_notificationManager = std::make_unique<notificationManager>();
 	g_console_options = std::make_unique<console_options>();
+	g_console_options->should_close = true;
 	g_console = std::make_unique<ImTerm::terminal<terminal_helper>>(
 	    *g_console_options, "Sub Rosa: Custom Console");
-	g_console->set_min_log_level(ImTerm::message::severity::info);
+	g_console->set_min_log_level(ImTerm::message::severity::trace);
+
+	g_assetManager = std::make_unique<AssetManager>();
 
 	spdlog::default_logger()->sinks().push_back(g_console->get_terminal_helper());
 
