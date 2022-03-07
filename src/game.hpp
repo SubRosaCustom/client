@@ -135,6 +135,15 @@ class game {
 	std::uintptr_t renderPNG;
 	std::add_pointer_t<int(int, int, char, float, float, float, float)>
 	    renderPNGFunc;
+	
+	std::uintptr_t createTexture;
+	std::add_pointer_t<void(int, int, int, int, int, int)> createTextureFunc;
+	
+	std::uintptr_t loadCMO;
+	std::add_pointer_t<int(int, int, char*)> loadCMOFunc;
+	
+	std::uintptr_t loadCMC;
+	std::add_pointer_t<void(int, char*)> loadCMCFunc;
 };
 
 inline std::unique_ptr<game> g_game;

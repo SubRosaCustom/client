@@ -22,7 +22,8 @@ game::game() {
 	dlclose(libSDL);
 #endif
 
-	serverListEntries = (ServerListEntry*)(base + WIN_LIN(0x2b0a7f58, 0x1c784de0));
+	serverListEntries =
+	    (ServerListEntry*)(base + WIN_LIN(0x2b0a7f58, 0x1c784de0));
 	amountOfServerListEntries = (int*)(base + WIN_LIN(0x2b0a7ee4, 0x0a8e2460));
 	mouse = (Mouse*)(base + WIN_LIN(0x43f7c6c0, 0x38cced60));
 	chatMessages = (ChatMessage*)(base + WIN_LIN(0x52e8f660, 0x5e15da60));
@@ -56,7 +57,7 @@ game::game() {
 
 	drawCreditsMenu = base + WIN_LIN(0xfcc90, 0x8d1ed);
 	drawCreditsMenuFunc = (decltype(drawCreditsMenuFunc))(drawCreditsMenu);
-	
+
 	drawOptionsMenu = base + WIN_LIN(0xfeb50, 0xaf684);
 	drawOptionsMenuFunc = (decltype(drawOptionsMenuFunc))(drawOptionsMenu);
 
@@ -89,10 +90,19 @@ game::game() {
 
 	serverEventLoop = base + WIN_LIN(TODO, 0x14067f);
 	serverEventLoopFunc = (decltype(serverEventLoopFunc))(serverEventLoop);
-	
+
 	testHook = base + WIN_LIN(TODO, 0x2719f);
 	testHookFunc = (decltype(testHookFunc))(testHook);
-	
+
 	renderPNG = base + WIN_LIN(0x6d300, 0x2f166);
 	renderPNGFunc = (decltype(renderPNGFunc))(renderPNG);
+
+	createTexture = base + WIN_LIN(TODO, 0x1459c2);
+	createTextureFunc = (decltype(createTextureFunc))(createTexture);
+
+	loadCMO = base + WIN_LIN(TODO, 0x9092c);
+	loadCMOFunc = (decltype(loadCMOFunc))(loadCMO);
+
+	loadCMC = base + WIN_LIN(TODO, 0x914ef);
+	loadCMCFunc = (decltype(loadCMCFunc))(loadCMC);
 }
